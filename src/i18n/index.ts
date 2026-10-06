@@ -1,4 +1,4 @@
-import type { CategoryId, Flow } from '@/data/dhikr';
+import { FREE_COUNTER_ID, type CategoryId, type Dhikr, type Flow } from '@/data/dhikr';
 import { useDhikrStore } from '@/store/dhikr-store';
 
 import { ar } from './ar';
@@ -54,6 +54,9 @@ export function useI18n() {
     formatNumber,
     /** Meaning of a built-in dhikr in the current language, if there is one. */
     meaning: (dhikrId: string): string | undefined => strings.dhikr[dhikrId],
+    /** Name of a dhikr as shown in lists. Only the free counter's name is translated. */
+    dhikrTitle: (dhikr: Pick<Dhikr, 'id' | 'title'>) =>
+      dhikr.id === FREE_COUNTER_ID ? t('freeCounter') : dhikr.title,
     categoryLabel: (category: CategoryId) => t(CATEGORY_KEYS[category]),
     flowTitle: (flow: Pick<Flow, 'id' | 'title'>) =>
       flow.title ?? (FLOW_KEYS[flow.id] ? t(FLOW_KEYS[flow.id]) : flow.id),

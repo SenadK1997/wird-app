@@ -297,6 +297,14 @@ export const SUGGESTED_DHIKR: Dhikr[] = [
   }),
 ];
 
+export const FREE_COUNTER_ID = 'free';
+
+/**
+ * A plain counter: no text and no target, it just counts up. A target of 0 means "endless".
+ * Its name comes from the translations.
+ */
+export const FREE_COUNTER: Dhikr = { id: FREE_COUNTER_ID, title: 'Free counter', target: 0, builtIn: true };
+
 export const BUILT_IN_FLOWS: Flow[] = [
   {
     id: 'after-prayer',

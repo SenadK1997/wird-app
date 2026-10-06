@@ -2,12 +2,13 @@ import * as Haptics from 'expo-haptics';
 import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
 import { useFocusEffect } from 'expo-router';
 import { useCallback } from 'react';
-import { Pressable, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
+import { Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useConfirm } from '@/components/confirm-dialog';
 import { ProgressBar } from '@/components/progress-bar';
 import { ProgressRing } from '@/components/progress-ring';
+import { ScrollArea } from '@/components/scroll-area';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { BottomTabInset, MaxContentWidth, Spacing, TopTabInset } from '@/constants/theme';
@@ -26,7 +27,7 @@ export default function CounterScreen() {
   const theme = useTheme();
   const confirm = useConfirm();
   const playTap = useTapSound();
-  const { t, meaning, flowTitle } = useI18n();
+  const { t, meaning, flowTitle, dhikrTitle } = useI18n();
   const {
     selected,
     count,
@@ -58,10 +59,13 @@ export default function CounterScreen() {
     }, [keepAwake])
   );
 
-  const rounds = Math.floor(count / target);
-  const inRound = count % target;
+  // A target of 0 is the free counter: it counts up for ever, with no rounds and no text.
+  const endless = target === 0;
+  const rounds = endless ? 0 : Math.floor(count / target);
+  const inRound = endless ? count : count % target;
   // A just-completed round shows as full (33 / 33) until the next tap starts a new one.
-  const shown = count > 0 && inRound === 0 ? target : inRound;
+  const shown = !endless && count > 0 && inRound === 0 ? target : inRound;
+  const title = dhikrTitle(selected);
 
   const arabicLength = selected.arabic?.length ?? 0;
   const long = arabicLength > LONG_ARABIC;
@@ -75,7 +79,7 @@ export default function CounterScreen() {
     increment();
     if (soundEnabled) playTap();
     if (!hapticsEnabled) return;
-    const completesRound = (count + 1) % target === 0;
+    const completesRound = !endless && (count + 1) % target === 0;
     const feedback = completesRound
       ? Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
       : Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -94,7 +98,7 @@ export default function CounterScreen() {
     } else {
       confirm({
         title: t('resetTitle'),
-        message: t('resetMessage', { title: selected.title }),
+        message: t('resetMessage', { title }),
         actionLabel: t('reset'),
         onConfirm: reset,
       });
@@ -114,12 +118,13 @@ export default function CounterScreen() {
           </View>
         ) : null}
 
-        {/* Scrolls when a long dua does not fit, so the ring always stays on screen. */}
-        <ScrollView style={styles.header} contentContainerStyle={styles.headerContent}>
+        {/* Scrolls when a long dua does not fit, so the ring always stays on screen. Keyed so each
+            dhikr starts at the top. */}
+        <ScrollArea key={selected.id} style={styles.header} contentContainerStyle={styles.headerContent}>
           {display.arabic && selected.arabic ? (
             <ThemedText style={arabicStyle}>{selected.arabic}</ThemedText>
           ) : null}
-          {display.transliteration ? (
+          {display.transliteration && !endless ? (
             <ThemedText
               type={long ? 'smallBold' : 'subtitle'}
               style={long ? styles.centered : styles.title}>
@@ -139,28 +144,35 @@ export default function CounterScreen() {
               {selected.source}
             </ThemedText>
           ) : null}
-        </ScrollView>
+        </ScrollArea>
 
         <Pressable
           onPress={handleTap}
           accessibilityRole="button"
-          accessibilityLabel={t('countLabel', { title: selected.title })}
-          accessibilityValue={{ text: `${shown} / ${target}` }}
+          accessibilityLabel={t('countLabel', { title })}
+          accessibilityValue={{ text: endless ? String(shown) : `${shown} / ${target}` }}
           style={({ pressed }) => pressed && styles.ringPressed}>
-          <ProgressRing size={ringSize} progress={shown / target}>
-            <ThemedText style={styles.count}>{shown}</ThemedText>
-            <ThemedText themeColor="textSecondary">{t('ofTarget', { n: target })}</ThemedText>
+          <ProgressRing size={ringSize} progress={endless ? 0 : shown / target}>
+            <ThemedText
+              style={[styles.count, shown > 99999 ? styles.countSmall : shown > 9999 && styles.countMedium]}>
+              {shown}
+            </ThemedText>
+            {endless ? null : (
+              <ThemedText themeColor="textSecondary">{t('ofTarget', { n: target })}</ThemedText>
+            )}
           </ProgressRing>
         </Pressable>
 
         <View style={styles.status}>
-          <ThemedText themeColor="textSecondary" style={styles.centered}>
-            {activeFlow
-              ? activeFlow.done
-                ? t('flowDone', { title: flowName })
-                : t('flowNext')
-              : t('rounds', { n: rounds })}
-          </ThemedText>
+          {endless ? null : (
+            <ThemedText themeColor="textSecondary" style={styles.centered}>
+              {activeFlow
+                ? activeFlow.done
+                  ? t('flowDone', { title: flowName })
+                  : t('flowNext')
+                : t('rounds', { n: rounds })}
+            </ThemedText>
+          )}
 
           {goal !== null ? (
             <View style={styles.goal}>
@@ -269,6 +281,15 @@ const styles = StyleSheet.create({
     lineHeight: 80,
     fontWeight: 700,
     fontVariant: ['tabular-nums'],
+  },
+  // Long counts on the free counter still have to fit inside the ring.
+  countMedium: {
+    fontSize: 56,
+    lineHeight: 64,
+  },
+  countSmall: {
+    fontSize: 44,
+    lineHeight: 52,
   },
   ringPressed: {
     transform: [{ scale: 0.97 }],

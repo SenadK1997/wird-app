@@ -12,7 +12,7 @@ import { FlowForm, type FlowFormValues } from '@/components/flow-form';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { BottomTabInset, MaxContentWidth, Spacing, TopTabInset } from '@/constants/theme';
-import { CATEGORY_IDS, type CategoryId, type Dhikr, type Flow } from '@/data/dhikr';
+import { CATEGORY_IDS, FREE_COUNTER, type CategoryId, type Dhikr, type Flow } from '@/data/dhikr';
 import { useTheme } from '@/hooks/use-theme';
 import { useI18n } from '@/i18n';
 import { useDhikrStore } from '@/store/dhikr-store';
@@ -47,7 +47,7 @@ export default function DhikrScreen() {
   } = useDhikrStore();
   const [tab, setTab] = useState<Tab>(() => {
     const current = selectedId ? findDhikr(selectedId) : undefined;
-    if (!current) return 'essentials';
+    if (!current || current.id === FREE_COUNTER.id) return 'essentials';
     return current.category ?? 'custom';
   });
   const [dhikrFormVisible, setDhikrFormVisible] = useState(false);
@@ -119,6 +119,21 @@ export default function DhikrScreen() {
           <ThemedText type="subtitle" style={styles.padded}>
             {t('tabDhikr')}
           </ThemedText>
+
+          <Pressable
+            onPress={() => handleSelect(FREE_COUNTER)}
+            accessibilityRole="button"
+            accessibilityState={{ selected: selectedId === FREE_COUNTER.id }}
+            style={({ pressed }) => [styles.padded, pressed && styles.pressed]}>
+            <ThemedView
+              type={selectedId === FREE_COUNTER.id ? 'backgroundSelected' : 'backgroundElement'}
+              style={[styles.row, selectedId === FREE_COUNTER.id && { borderColor: theme.accent }]}>
+              <ThemedText type="smallBold">{t('freeCounter')}</ThemedText>
+              <ThemedText type="small" themeColor="textSecondary">
+                {t('freeCounterHint')}
+              </ThemedText>
+            </ThemedView>
+          </Pressable>
 
           <ThemedText type="smallBold" themeColor="textSecondary" style={styles.sectionLabel}>
             {t('flows')}

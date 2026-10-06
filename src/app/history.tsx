@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useFocusEffect } from 'expo-router';
+import { useCallback, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -13,12 +14,18 @@ import { BottomTabInset, MaxContentWidth, Spacing, TopTabInset } from '@/constan
 import { useTheme } from '@/hooks/use-theme';
 import { useI18n } from '@/i18n';
 import { bestStreak, currentStreak, dayTotal, useDhikrStore } from '@/store/dhikr-store';
-import { formatDay, lastDays } from '@/utils/date';
+import { dayKey, formatDay, lastDays } from '@/utils/date';
+import { requestRating } from '@/utils/store';
+
+/** Ask for a rating only once someone has used the app on a few days, and not again for months. */
+const RATING_MIN_DAYS = 3;
+const RATING_MIN_TOTAL = 100;
+const RATING_REPEAT_DAYS = 120;
 
 export default function HistoryScreen() {
   const theme = useTheme();
-  const { t, locale, formatNumber } = useI18n();
-  const { history, todayTotal, goal, findDhikr } = useDhikrStore();
+  const { t, locale, formatNumber, dhikrTitle } = useI18n();
+  const { history, todayTotal, goal, reviewAskedOn, findDhikr, set } = useDhikrStore();
   const [sharing, setSharing] = useState(false);
 
   const days = lastDays(7);
@@ -27,6 +34,21 @@ export default function HistoryScreen() {
     .sort(([, a], [, b]) => b - a);
   const streak = currentStreak(history);
   const allTime = Object.values(history).reduce((sum, totals) => sum + dayTotal(totals), 0);
+  const activeDays = Object.values(history).filter((totals) => dayTotal(totals) > 0).length;
+
+  // Looking at History is a calm moment; the counter is never interrupted with a rating prompt.
+  useFocusEffect(
+    useCallback(() => {
+      if (activeDays < RATING_MIN_DAYS || allTime < RATING_MIN_TOTAL) return;
+      const today = dayKey();
+      if (reviewAskedOn) {
+        const daysSince = (Date.parse(today) - Date.parse(reviewAskedOn)) / 86_400_000;
+        if (daysSince < RATING_REPEAT_DAYS) return;
+      }
+      set({ reviewAskedOn: today });
+      requestRating();
+    }, [activeDays, allTime, reviewAskedOn, set])
+  );
 
   return (
     <ThemedView style={styles.container}>
@@ -67,7 +89,7 @@ export default function HistoryScreen() {
               todayEntries.map(([id, taps]) => (
                 <Row
                   key={id}
-                  label={findDhikr(id)?.title ?? t('deletedDhikr')}
+                  label={dhikrTitle(findDhikr(id) ?? { id, title: t('deletedDhikr') })}
                   value={formatNumber(taps)}
                 />
               ))

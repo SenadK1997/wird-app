@@ -1,9 +1,15 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as SplashScreen from 'expo-splash-screen';
 import { createContext, use, useEffect, useReducer, useState, type ReactNode } from 'react';
 
 import type { AccentId, ThemeMode } from '@/constants/theme';
-import { BUILT_IN_FLOWS, SUGGESTED_DHIKR, type Dhikr, type Flow, type FlowStep } from '@/data/dhikr';
+import {
+  BUILT_IN_FLOWS,
+  FREE_COUNTER,
+  SUGGESTED_DHIKR,
+  type Dhikr,
+  type Flow,
+  type FlowStep,
+} from '@/data/dhikr';
 import type { LanguageSetting } from '@/i18n/languages';
 import { dayKey } from '@/utils/date';
 
@@ -34,6 +40,10 @@ type Settings = {
   themeMode: ThemeMode;
   accent: AccentId;
   language: LanguageSetting;
+  /** False until the welcome screen has been completed once. */
+  onboarded: boolean;
+  /** Day (`YYYY-MM-DD`) the app last asked for a store rating, or `null` if it never has. */
+  reviewAskedOn: string | null;
 };
 
 type State = Settings & {
@@ -83,6 +93,8 @@ const initialState: State = {
   themeMode: 'system',
   accent: 'green',
   language: 'system',
+  onboarded: false,
+  reviewAskedOn: null,
 };
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -253,7 +265,7 @@ type Store = Settings & {
   selectedId: string | null;
   /** Taps on the dhikr on the counter since the last reset. */
   count: number;
-  /** Count the counter is working towards: the flow step's, or the dhikr's own. */
+  /** Count the counter is working towards: the flow step's, or the dhikr's own. 0 means endless. */
   target: number;
   activeFlow: { flow: Flow; step: number; steps: number; done: boolean } | null;
   history: History;
@@ -299,10 +311,7 @@ export function DhikrStoreProvider({ children }: { children: ReactNode }) {
       .catch(() => {
         // Unreadable saved data: start fresh rather than block the app.
       })
-      .finally(() => {
-        setHydrated(true);
-        SplashScreen.hideAsync();
-      });
+      .finally(() => setHydrated(true));
   }, []);
 
   useEffect(() => {
@@ -312,7 +321,7 @@ export function DhikrStoreProvider({ children }: { children: ReactNode }) {
 
   if (!hydrated) return null;
 
-  const all = [...SUGGESTED_DHIKR, ...state.custom];
+  const all = [FREE_COUNTER, ...SUGGESTED_DHIKR, ...state.custom];
   const findDhikr = (id: string) => all.find((d) => d.id === id);
   const picked = findDhikr(state.selectedId) ?? SUGGESTED_DHIKR[0];
 
@@ -368,7 +377,8 @@ export function DhikrStoreProvider({ children }: { children: ReactNode }) {
         const parsed: unknown = JSON.parse(raw);
         const restored = isRecord(parsed) && parsed.app === BACKUP_MARKER ? normalize(parsed.state) : null;
         if (!restored) return false;
-        dispatch({ type: 'hydrate', state: restored });
+        // Someone restoring a backup has used the app before, so skip the welcome screen.
+        dispatch({ type: 'hydrate', state: { ...restored, onboarded: true } });
         return true;
       } catch {
         return false;

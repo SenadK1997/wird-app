@@ -2,11 +2,13 @@ import { useState, type ReactNode } from 'react';
 import { Platform, Pressable, ScrollView, StyleSheet, Switch, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { AboutSheet, PrivacySheet } from '@/components/about-sheets';
 import { Button } from '@/components/button';
 import { Chip } from '@/components/chip';
 import { useConfirm } from '@/components/confirm-dialog';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { appStoreLink } from '@/constants/app-info';
 import {
   Accents,
   BottomTabInset,
@@ -25,6 +27,7 @@ import { useDhikrStore, type Reminder } from '@/store/dhikr-store';
 import { pickBackup, saveBackup } from '@/utils/backup';
 import { formatTime } from '@/utils/date';
 import { remindersSupported, syncReminders } from '@/utils/reminder';
+import { openRating, shareApp } from '@/utils/store';
 
 const GOAL_PRESETS = [100, 300, 500, 1000];
 const MINUTE_STEP = 5;
@@ -66,6 +69,8 @@ export default function SettingsScreen() {
   const [goalDraft, setGoalDraft] = useState<string | null>(null);
   const [reminderError, setReminderError] = useState<string | null>(null);
   const [backupStatus, setBackupStatus] = useState<string | null>(null);
+  const [sheet, setSheet] = useState<'about' | 'privacy' | null>(null);
+  const [shareStatus, setShareStatus] = useState<string | null>(null);
 
   const goalText = goalDraft ?? String(dailyGoal);
   const goalValid = /^\d+$/.test(goalText) && Number(goalText) >= 1 && Number(goalText) <= MAX_DAILY_GOAL;
@@ -152,6 +157,13 @@ export default function SettingsScreen() {
     } catch {
       setBackupStatus(t('restoreInvalid'));
     }
+  };
+
+  const handleShareApp = async () => {
+    setShareStatus(null);
+    const result = await shareApp(t('shareAppText', { link: appStoreLink }).trim());
+    if (result === 'copied') setShareStatus(t('copied'));
+    if (result === 'unavailable') setShareStatus(t('shareFailed'));
   };
 
   return (
@@ -366,8 +378,19 @@ export default function SettingsScreen() {
             </View>
             {backupStatus ? <ThemedText type="small">{backupStatus}</ThemedText> : null}
           </Section>
+
+          <Section title={t('about')}>
+            <Button label={t('aboutWird')} onPress={() => setSheet('about')} />
+            <Button label={t('privacyPolicy')} onPress={() => setSheet('privacy')} />
+            <Button label={t('rateApp')} onPress={openRating} />
+            <Button label={t('shareApp')} onPress={handleShareApp} />
+            {shareStatus ? <ThemedText type="small">{shareStatus}</ThemedText> : null}
+          </Section>
         </ScrollView>
       </SafeAreaView>
+
+      <AboutSheet visible={sheet === 'about'} onClose={() => setSheet(null)} />
+      <PrivacySheet visible={sheet === 'privacy'} onClose={() => setSheet(null)} />
     </ThemedView>
   );
 }
