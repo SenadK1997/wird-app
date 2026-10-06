@@ -1,18 +1,32 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { useColorScheme } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
 
-import { AnimatedSplashOverlay } from '@/components/animated-icon';
 import AppTabs from '@/components/app-tabs';
+import { ConfirmProvider } from '@/components/confirm-dialog';
+import { useScheme } from '@/hooks/use-theme';
+import { DhikrStoreProvider } from '@/store/dhikr-store';
 
+// Hidden by DhikrStoreProvider once the saved counts are loaded.
 SplashScreen.preventAutoHideAsync();
 
-export default function TabLayout() {
-  const colorScheme = useColorScheme();
+export default function RootLayout() {
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <AnimatedSplashOverlay />
-      <AppTabs />
+    <DhikrStoreProvider>
+      <ThemedApp />
+    </DhikrStoreProvider>
+  );
+}
+
+// Separate from RootLayout because the theme comes from settings held in the store.
+function ThemedApp() {
+  const scheme = useScheme();
+  return (
+    <ThemeProvider value={scheme === 'dark' ? DarkTheme : DefaultTheme}>
+      <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
+      <ConfirmProvider>
+        <AppTabs />
+      </ConfirmProvider>
     </ThemeProvider>
   );
 }
