@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createContext, use, useEffect, useReducer, useState, type ReactNode } from 'react';
 
-import type { AccentId, ThemeMode } from '@/constants/theme';
+import { Accents, type AccentId, type ThemeMode } from '@/constants/theme';
 import {
   BUILT_IN_FLOWS,
   FREE_COUNTER,
@@ -15,6 +15,8 @@ import { dayKey } from '@/utils/date';
 
 const STORAGE_KEY = 'dhikr-state-v1';
 const BACKUP_MARKER = 'wird-backup';
+/** Raised when the app's look changes, so saved settings from the older look are moved over once. */
+const THEME_VERSION = 2;
 
 type DayTotals = Record<string, number>;
 export type History = Record<string, DayTotals>;
@@ -55,6 +57,7 @@ type State = Settings & {
   counts: Record<string, number>;
   /** Taps per day (`YYYY-MM-DD`), per dhikr id. */
   history: History;
+  themeVersion: number;
   /** Progress through a flow, or `null` when counting a single dhikr. */
   sequence: { flowId: string; index: number; count: number } | null;
 };
@@ -90,8 +93,9 @@ const initialState: State = {
   dailyGoalEnabled: true,
   dailyGoal: 100,
   reminders: [],
-  themeMode: 'system',
-  accent: 'green',
+  themeMode: 'dark',
+  accent: 'gold',
+  themeVersion: THEME_VERSION,
   language: 'system',
   onboarded: false,
   reviewAskedOn: null,
@@ -111,6 +115,12 @@ function normalize(saved: unknown): State | null {
     state.reminders = state.reminder ? [{ ...state.reminder, id: 'reminder-1' }] : [];
   }
   delete state.reminder;
+  // Settings saved under the earlier cream-and-green look start out in the new one.
+  if (saved.themeVersion !== THEME_VERSION || !(state.accent in Accents)) {
+    state.themeMode = 'dark';
+    state.accent = 'gold';
+    state.themeVersion = THEME_VERSION;
+  }
   if (state.sequence && !state.sequence.flowId) {
     state.sequence = { ...state.sequence, flowId: 'after-prayer' };
   }

@@ -110,9 +110,8 @@ export const bs: Translations = {
     themeDark: 'Tamna',
     accentColour: 'Boja naglaska',
     accentGreen: 'Zelena',
-    accentBlue: 'Plava',
     accentGold: 'Zlatna',
-    accentPlum: 'Ljubičasta',
+    accentRose: 'Ružičasta',
 
     counterDisplay: 'Prikaz na brojaču',
     showArabic: 'Arapski',

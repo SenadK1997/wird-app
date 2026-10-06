@@ -4,7 +4,7 @@ import { Modal, Pressable, StyleSheet, View } from 'react-native';
 import { Button } from '@/components/button';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Spacing } from '@/constants/theme';
+import { AppFonts, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { useI18n } from '@/i18n';
 import { shareProgress } from '@/utils/share-progress';
@@ -106,7 +106,7 @@ const styles = StyleSheet.create({
   count: {
     fontSize: 64,
     lineHeight: 72,
-    fontWeight: 700,
+    fontFamily: AppFonts.bold,
     fontVariant: ['tabular-nums'],
   },
   buttons: {

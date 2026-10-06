@@ -110,9 +110,8 @@ export const id: Translations = {
     themeDark: 'Gelap',
     accentColour: 'Warna aksen',
     accentGreen: 'Hijau',
-    accentBlue: 'Biru',
     accentGold: 'Emas',
-    accentPlum: 'Ungu',
+    accentRose: 'Merah muda',
 
     counterDisplay: 'Tampilan penghitung',
     showArabic: 'Arab',

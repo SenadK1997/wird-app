@@ -13,6 +13,7 @@ import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 
 import { StarMark } from '@/components/star-mark';
 import { LaunchColors, LaunchFonts } from '@/constants/launch-theme';
+import { NATIVE_DRIVER } from '@/utils/animation';
 import { useI18n } from '@/i18n';
 
 type Phase = 'splash' | 'loading' | 'skeleton';
@@ -51,7 +52,7 @@ export function LaunchScreen({ onDone }: { onDone: () => void }) {
       toValue: 0,
       duration: FADE_MS,
       easing: Easing.out(Easing.ease),
-      useNativeDriver: true,
+      useNativeDriver: NATIVE_DRIVER,
     });
     fade.start(({ finished }) => {
       if (finished) onDone();
@@ -81,7 +82,7 @@ function FadeIn({ children }: { children: ReactNode }) {
   const opacity = useState(() => new Animated.Value(0))[0];
 
   useEffect(() => {
-    const fade = Animated.timing(opacity, { toValue: 1, duration: FADE_MS, useNativeDriver: true });
+    const fade = Animated.timing(opacity, { toValue: 1, duration: FADE_MS, useNativeDriver: NATIVE_DRIVER });
     fade.start();
     return () => fade.stop();
   }, [opacity]);
@@ -95,7 +96,7 @@ function useLoop(duration: number, easing = Easing.linear) {
 
   useEffect(() => {
     const loop = Animated.loop(
-      Animated.timing(value, { toValue: 1, duration, easing, useNativeDriver: true })
+      Animated.timing(value, { toValue: 1, duration, easing, useNativeDriver: NATIVE_DRIVER })
     );
     loop.start();
     return () => loop.stop();
@@ -136,8 +137,8 @@ function Dot({ delay }: { delay: number }) {
     const pulsing = Animated.loop(
       Animated.sequence([
         Animated.delay(delay),
-        Animated.timing(pulse, { toValue: 1, duration: 560, useNativeDriver: true }),
-        Animated.timing(pulse, { toValue: 0, duration: 560, useNativeDriver: true }),
+        Animated.timing(pulse, { toValue: 1, duration: 560, useNativeDriver: NATIVE_DRIVER }),
+        Animated.timing(pulse, { toValue: 0, duration: 560, useNativeDriver: NATIVE_DRIVER }),
         Animated.delay(280 - delay / 2),
       ])
     );

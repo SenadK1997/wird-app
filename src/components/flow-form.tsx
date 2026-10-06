@@ -5,7 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '@/components/button';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { MaxContentWidth, Spacing } from '@/constants/theme';
+import { AppFonts, MaxContentWidth, Spacing } from '@/constants/theme';
 import { MAX_FLOW_STEPS, MAX_TARGET, type Flow, type FlowStep } from '@/data/dhikr';
 import { useTheme } from '@/hooks/use-theme';
 import { useI18n } from '@/i18n';
@@ -222,6 +222,7 @@ const styles = StyleSheet.create({
     gap: Spacing.two,
   },
   input: {
+    fontFamily: AppFonts.medium,
     fontSize: 16,
     paddingVertical: Spacing.three,
     paddingHorizontal: Spacing.three,
@@ -247,7 +248,7 @@ const styles = StyleSheet.create({
   stepInput: {
     flex: 1,
     fontSize: 16,
-    fontWeight: 700,
+    fontFamily: AppFonts.bold,
     paddingVertical: Spacing.two,
     paddingHorizontal: Spacing.three,
     borderRadius: Spacing.two,

@@ -3,22 +3,20 @@ import { Platform } from 'react-native';
 
 import type { Reminder } from '@/store/dhikr-store';
 
-/** Scheduled notifications only exist in the phone app. */
-export const remindersSupported = Platform.OS !== 'web';
+/** Scheduled notifications only exist in the phone app; reminder.web.ts is the web stand-in. */
+export const remindersSupported = true;
 
 const CHANNEL_ID = 'daily-reminder';
 
-if (remindersSupported) {
-  // Show the reminder even if the app happens to be open when it fires.
-  Notifications.setNotificationHandler({
-    handleNotification: async () => ({
-      shouldPlaySound: false,
-      shouldSetBadge: false,
-      shouldShowBanner: true,
-      shouldShowList: true,
-    }),
-  });
-}
+// Show the reminder even if the app happens to be open when it fires.
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldPlaySound: false,
+    shouldSetBadge: false,
+    shouldShowBanner: true,
+    shouldShowList: true,
+  }),
+});
 
 async function hasPermission() {
   const current = await Notifications.getPermissionsAsync();
@@ -32,7 +30,6 @@ async function hasPermission() {
  * enabled one. Returns `false` when the user has not allowed notifications.
  */
 export async function syncReminders(reminders: Reminder[], text: { title: string; body: string }) {
-  if (!remindersSupported) return true;
   const enabled = reminders.filter((reminder) => reminder.enabled);
   if (enabled.length === 0) {
     await Notifications.cancelAllScheduledNotificationsAsync();

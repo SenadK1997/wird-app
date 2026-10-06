@@ -11,7 +11,7 @@ import { DhikrForm, type DhikrFormValues } from '@/components/dhikr-form';
 import { FlowForm, type FlowFormValues } from '@/components/flow-form';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { BottomTabInset, MaxContentWidth, Spacing, TopTabInset } from '@/constants/theme';
+import { AppFonts, BottomTabInset, MaxContentWidth, Spacing, TopTabInset } from '@/constants/theme';
 import { CATEGORY_IDS, FREE_COUNTER, type CategoryId, type Dhikr, type Flow } from '@/data/dhikr';
 import { useTheme } from '@/hooks/use-theme';
 import { useI18n } from '@/i18n';
@@ -421,6 +421,7 @@ const styles = StyleSheet.create({
     gap: Spacing.half,
   },
   rowArabic: {
+    fontFamily: AppFonts.arabic,
     fontSize: 22,
     lineHeight: 38,
     textAlign: 'right',
@@ -429,6 +430,7 @@ const styles = StyleSheet.create({
     maxWidth: '50%',
   },
   rowArabicStacked: {
+    fontFamily: AppFonts.arabic,
     fontSize: 22,
     lineHeight: 40,
     textAlign: 'right',

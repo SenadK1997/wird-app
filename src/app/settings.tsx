@@ -10,6 +10,7 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { appStoreLink } from '@/constants/app-info';
 import {
+  AppFonts,
   Accents,
   BottomTabInset,
   MaxContentWidth,
@@ -39,10 +40,9 @@ const THEME_MODES: { mode: ThemeMode; label: UiKey }[] = [
 ];
 
 const ACCENT_LABELS: Record<AccentId, UiKey> = {
-  green: 'accentGreen',
-  blue: 'accentBlue',
   gold: 'accentGold',
-  plum: 'accentPlum',
+  green: 'accentGreen',
+  rose: 'accentRose',
 };
 
 export default function SettingsScreen() {
@@ -502,7 +502,7 @@ const styles = StyleSheet.create({
   },
   input: {
     fontSize: 20,
-    fontWeight: 700,
+    fontFamily: AppFonts.bold,
     paddingVertical: Spacing.two,
     paddingHorizontal: Spacing.three,
     borderRadius: Spacing.three,

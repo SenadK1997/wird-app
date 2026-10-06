@@ -109,9 +109,8 @@ export const en = {
     themeDark: 'Dark',
     accentColour: 'Accent colour',
     accentGreen: 'Green',
-    accentBlue: 'Blue',
     accentGold: 'Gold',
-    accentPlum: 'Plum',
+    accentRose: 'Rose',
 
     counterDisplay: 'Counter display',
     showArabic: 'Arabic',

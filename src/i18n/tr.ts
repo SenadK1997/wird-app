@@ -110,9 +110,8 @@ export const tr: Translations = {
     themeDark: 'Koyu',
     accentColour: 'Vurgu rengi',
     accentGreen: 'Yeşil',
-    accentBlue: 'Mavi',
     accentGold: 'Altın',
-    accentPlum: 'Mor',
+    accentRose: 'Pembe',
 
     counterDisplay: 'Sayaç görünümü',
     showArabic: 'Arapça',

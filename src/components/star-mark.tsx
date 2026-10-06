@@ -3,6 +3,7 @@ import { Animated, Easing, StyleSheet, Text, View } from 'react-native';
 import Svg, { Circle, Defs, RadialGradient, Rect, Stop } from 'react-native-svg';
 
 import { LaunchColors, LaunchFonts } from '@/constants/launch-theme';
+import { NATIVE_DRIVER } from '@/utils/animation';
 
 const GLOW_SIZE = 168;
 const STAR_SIZE = 140;
@@ -14,12 +15,12 @@ export function StarMark() {
 
   useEffect(() => {
     const spinning = Animated.loop(
-      Animated.timing(spin, { toValue: 1, duration: 24000, easing: Easing.linear, useNativeDriver: true })
+      Animated.timing(spin, { toValue: 1, duration: 24000, easing: Easing.linear, useNativeDriver: NATIVE_DRIVER })
     );
     const breathing = Animated.loop(
       Animated.sequence([
-        Animated.timing(glow, { toValue: 1, duration: 1600, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
-        Animated.timing(glow, { toValue: 0, duration: 1600, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+        Animated.timing(glow, { toValue: 1, duration: 1600, easing: Easing.inOut(Easing.ease), useNativeDriver: NATIVE_DRIVER }),
+        Animated.timing(glow, { toValue: 0, duration: 1600, easing: Easing.inOut(Easing.ease), useNativeDriver: NATIVE_DRIVER }),
       ])
     );
     spinning.start();

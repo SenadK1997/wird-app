@@ -110,9 +110,8 @@ export const ar: Translations = {
     themeDark: 'داكن',
     accentColour: 'لون التمييز',
     accentGreen: 'أخضر',
-    accentBlue: 'أزرق',
     accentGold: 'ذهبي',
-    accentPlum: 'بنفسجي',
+    accentRose: 'وردي',
 
     counterDisplay: 'عرض العداد',
     showArabic: 'العربية',

@@ -7,53 +7,73 @@ import '@/global.css';
 
 import { Platform } from 'react-native';
 
+// Dark is the app's main look: the deep teal and gold of the launch screens.
+// Light is the same family turned over, ivory with teal text, for people who choose it.
 export const Colors = {
   light: {
-    text: '#14201B',
-    background: '#FAF8F3',
-    backgroundElement: '#F0EDE4',
-    backgroundSelected: '#E4DFD2',
-    textSecondary: '#60646C',
-    accent: '#0B6E4F',
+    text: '#0E2621',
+    background: '#F6F1E6',
+    backgroundElement: '#ECE4D3',
+    backgroundSelected: '#DFD5BF',
+    textSecondary: '#4E6259',
+    border: '#D2C6AC',
+    accent: '#6B5010',
     onAccent: '#ffffff',
-    danger: '#B42318',
+    danger: '#A8321F',
   },
   dark: {
-    text: '#F2F5F3',
-    background: '#0C1210',
-    backgroundElement: '#18211E',
-    backgroundSelected: '#24302B',
-    textSecondary: '#B0B4BA',
-    accent: '#3DDC97',
-    onAccent: '#06281C',
-    danger: '#F97066',
+    text: '#F3EBDD',
+    background: '#0E2621',
+    backgroundElement: '#13302A',
+    backgroundSelected: '#1E3E37',
+    textSecondary: '#B8C4BC',
+    border: '#24463E',
+    accent: '#C9A45C',
+    onAccent: '#0E2621',
+    danger: '#F0907F',
   },
 } as const;
 
 export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;
 
-/** Accent colours the user can pick from; each replaces `accent` and `onAccent`. */
+/**
+ * Accent colours the user can pick from; each replaces `accent` and `onAccent`. The dark
+ * values are the three accents of the launch design; the light ones are darkened to stay
+ * readable on ivory.
+ */
 export const Accents = {
-  green: {
-    light: { accent: '#0B6E4F', onAccent: '#ffffff' },
-    dark: { accent: '#3DDC97', onAccent: '#06281C' },
-  },
-  blue: {
-    light: { accent: '#1D4ED8', onAccent: '#ffffff' },
-    dark: { accent: '#7AA7FF', onAccent: '#0A1A3D' },
-  },
   gold: {
-    light: { accent: '#8A6100', onAccent: '#ffffff' },
-    dark: { accent: '#F2C14E', onAccent: '#2B1E00' },
+    light: { accent: '#6B5010', onAccent: '#ffffff' },
+    dark: { accent: '#C9A45C', onAccent: '#0E2621' },
   },
-  plum: {
-    light: { accent: '#7A2E6E', onAccent: '#ffffff' },
-    dark: { accent: '#E29AD6', onAccent: '#33102D' },
+  green: {
+    light: { accent: '#285E4D', onAccent: '#ffffff' },
+    dark: { accent: '#7FB8A4', onAccent: '#0E2621' },
+  },
+  rose: {
+    light: { accent: '#874632', onAccent: '#ffffff' },
+    dark: { accent: '#E2B4A0', onAccent: '#0E2621' },
   },
 } as const;
 
 export type AccentId = keyof typeof Accents;
 export type ThemeMode = 'system' | 'light' | 'dark';
+
+/**
+ * The app's typefaces, by the names they are loaded under in the root layout. Each weight is its
+ * own font file, so text picks a family here instead of setting `fontWeight`.
+ */
+export const AppFonts = {
+  regular: 'Manrope_400Regular',
+  medium: 'Manrope_500Medium',
+  semiBold: 'Manrope_600SemiBold',
+  bold: 'Manrope_700Bold',
+  /** Headings and the app name. */
+  display: 'Marcellus_400Regular',
+  /** Arabic dhikr text. */
+  arabic: 'Amiri_400Regular',
+  arabicBold: 'Amiri_700Bold',
+} as const;
 
 export const Fonts = Platform.select({
   ios: {

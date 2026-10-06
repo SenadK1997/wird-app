@@ -110,9 +110,8 @@ export const ur: Translations = {
     themeDark: 'تاریک',
     accentColour: 'نمایاں رنگ',
     accentGreen: 'سبز',
-    accentBlue: 'نیلا',
     accentGold: 'سنہری',
-    accentPlum: 'جامنی',
+    accentRose: 'گلابی',
 
     counterDisplay: 'کاؤنٹر کا منظر',
     showArabic: 'عربی',

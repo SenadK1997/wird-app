@@ -11,7 +11,7 @@ import { ProgressRing } from '@/components/progress-ring';
 import { ScrollArea } from '@/components/scroll-area';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { BottomTabInset, MaxContentWidth, Spacing, TopTabInset } from '@/constants/theme';
+import { AppFonts, BottomTabInset, MaxContentWidth, Spacing, TopTabInset } from '@/constants/theme';
 import { useTapSound } from '@/hooks/use-tap-sound';
 import { useTheme } from '@/hooks/use-theme';
 import { useI18n } from '@/i18n';
@@ -251,18 +251,21 @@ const styles = StyleSheet.create({
     borderRadius: Spacing.four,
   },
   arabic: {
+    fontFamily: AppFonts.arabic,
     fontSize: 40,
     lineHeight: 64,
     textAlign: 'center',
     writingDirection: 'rtl',
   },
   arabicLong: {
+    fontFamily: AppFonts.arabic,
     fontSize: 24,
     lineHeight: 42,
     textAlign: 'center',
     writingDirection: 'rtl',
   },
   arabicVeryLong: {
+    fontFamily: AppFonts.arabic,
     fontSize: 20,
     lineHeight: 36,
     textAlign: 'center',
@@ -279,7 +282,7 @@ const styles = StyleSheet.create({
   count: {
     fontSize: 72,
     lineHeight: 80,
-    fontWeight: 700,
+    fontFamily: AppFonts.bold,
     fontVariant: ['tabular-nums'],
   },
   // Long counts on the free counter still have to fit inside the ring.

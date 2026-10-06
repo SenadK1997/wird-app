@@ -5,7 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '@/components/button';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { MaxContentWidth, Spacing } from '@/constants/theme';
+import { AppFonts, MaxContentWidth, Spacing } from '@/constants/theme';
 import { MAX_TARGET, type Dhikr } from '@/data/dhikr';
 import { useTheme } from '@/hooks/use-theme';
 import { useI18n } from '@/i18n';
@@ -130,12 +130,14 @@ const styles = StyleSheet.create({
     gap: Spacing.two,
   },
   input: {
+    fontFamily: AppFonts.medium,
     fontSize: 16,
     paddingVertical: Spacing.three,
     paddingHorizontal: Spacing.three,
     borderRadius: Spacing.three,
   },
   arabicInput: {
+    fontFamily: AppFonts.arabic,
     fontSize: 22,
     textAlign: 'right',
     writingDirection: 'rtl',

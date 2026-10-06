@@ -10,7 +10,7 @@ import { ProgressBar } from '@/components/progress-bar';
 import { ShareDialog } from '@/components/share-dialog';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { BottomTabInset, MaxContentWidth, Spacing, TopTabInset } from '@/constants/theme';
+import { AppFonts, BottomTabInset, MaxContentWidth, Spacing, TopTabInset } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { useI18n } from '@/i18n';
 import { bestStreak, currentStreak, dayTotal, useDhikrStore } from '@/store/dhikr-store';
@@ -188,7 +188,7 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize: 28,
     lineHeight: 36,
-    fontWeight: 700,
+    fontFamily: AppFonts.bold,
     fontVariant: ['tabular-nums'],
   },
   statLabel: {
@@ -213,6 +213,6 @@ const styles = StyleSheet.create({
   },
   rowValue: {
     fontVariant: ['tabular-nums'],
-    fontWeight: 700,
+    fontFamily: AppFonts.bold,
   },
 });

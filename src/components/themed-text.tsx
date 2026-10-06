@@ -1,6 +1,6 @@
 import { Platform, StyleSheet, Text, type TextProps } from 'react-native';
 
-import { Fonts, ThemeColor } from '@/constants/theme';
+import { AppFonts, Fonts, ThemeColor } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { useI18n } from '@/i18n';
 
@@ -33,40 +33,44 @@ export function ThemedText({ style, type = 'default', themeColor, ...rest }: The
   );
 }
 
+// Weight comes from the font family, not fontWeight: each Manrope weight is a separate file.
 const styles = StyleSheet.create({
   rtl: {
     writingDirection: 'rtl',
   },
   small: {
+    fontFamily: AppFonts.medium,
     fontSize: 14,
     lineHeight: 20,
-    fontWeight: 500,
   },
   smallBold: {
+    fontFamily: AppFonts.bold,
     fontSize: 14,
     lineHeight: 20,
-    fontWeight: 700,
   },
   default: {
+    fontFamily: AppFonts.medium,
     fontSize: 16,
     lineHeight: 24,
-    fontWeight: 500,
   },
   title: {
+    fontFamily: AppFonts.display,
     fontSize: 48,
-    fontWeight: 600,
-    lineHeight: 52,
+    lineHeight: 56,
   },
   subtitle: {
+    fontFamily: AppFonts.display,
     fontSize: 32,
     lineHeight: 44,
-    fontWeight: 600,
+    letterSpacing: 0.5,
   },
   link: {
+    fontFamily: AppFonts.medium,
     lineHeight: 30,
     fontSize: 14,
   },
   linkPrimary: {
+    fontFamily: AppFonts.medium,
     lineHeight: 30,
     fontSize: 14,
     color: '#3c87f7',
