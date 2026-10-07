@@ -1,0 +1,102 @@
+/* Shared by the Wird support and privacy pages. Same teal and gold as the app. */
+:root {
+  --background: #0e2621;
+  --surface: #13302a;
+  --border: #24463e;
+  --text: #f3ebdd;
+  --muted: #b8c4bc;
+  --accent: #c9a45c;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--background);
+  color: var(--text);
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-size: 17px;
+  line-height: 1.65;
+}
+
+main {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 48px 24px 64px;
+}
+
+h1,
+h2 {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-weight: 400;
+  line-height: 1.25;
+}
+
+h1 {
+  font-size: 40px;
+  margin: 24px 0 8px;
+}
+
+h2 {
+  font-size: 22px;
+  color: var(--accent);
+  margin: 36px 0 8px;
+}
+
+p {
+  margin: 0 0 16px;
+}
+
+a {
+  color: var(--accent);
+}
+
+a:hover {
+  color: #e3c484;
+}
+
+img {
+  border-radius: 22%;
+}
+
+.muted,
+.tagline {
+  color: var(--muted);
+}
+
+.tagline {
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-size: 14px;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  color: var(--text);
+  text-decoration: none;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 24px;
+}
+
+.hero {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.hero h1 {
+  font-size: 48px;
+  letter-spacing: 0.06em;
+  margin: 16px 0 4px;
+}
+
+footer {
+  margin-top: 56px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 15px;
+}

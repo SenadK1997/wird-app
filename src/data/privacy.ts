@@ -2,7 +2,10 @@ import { ADS_ENABLED, COMPANY } from '@/constants/app-info';
 
 type Section = { title: string; body: string };
 
-/** The privacy policy, in English. It describes what the app does today; keep it in step with the code. */
+/**
+ * The privacy policy, in English. It describes what the app does today; keep it in step with the
+ * code, and with docs/privacy.html, which is the public copy Apple links to.
+ */
 export const PRIVACY_SECTIONS: Section[] = [
   {
     title: 'Summary',
