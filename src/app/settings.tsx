@@ -1,8 +1,10 @@
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { Platform, Pressable, ScrollView, StyleSheet, Switch, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { privacyOptionsRequired, showPrivacyOptions } from '@/ads/sdk';
 import { AboutSheet, PrivacySheet } from '@/components/about-sheets';
+import { AdBanner } from '@/components/ad-banner';
 import { Button } from '@/components/button';
 import { Chip } from '@/components/chip';
 import { useConfirm } from '@/components/confirm-dialog';
@@ -71,6 +73,18 @@ export default function SettingsScreen() {
   const [backupStatus, setBackupStatus] = useState<string | null>(null);
   const [sheet, setSheet] = useState<'about' | 'privacy' | null>(null);
   const [shareStatus, setShareStatus] = useState<string | null>(null);
+  // People covered by consent rules must be able to change their ad choices later.
+  const [adChoices, setAdChoices] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    privacyOptionsRequired().then((required) => {
+      if (!cancelled) setAdChoices(required);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const goalText = goalDraft ?? String(dailyGoal);
   const goalValid = /^\d+$/.test(goalText) && Number(goalText) >= 1 && Number(goalText) <= MAX_DAILY_GOAL;
@@ -382,11 +396,15 @@ export default function SettingsScreen() {
           <Section title={t('about')}>
             <Button label={t('aboutWird')} onPress={() => setSheet('about')} />
             <Button label={t('privacyPolicy')} onPress={() => setSheet('privacy')} />
+            {adChoices ? (
+              <Button label={t('adChoices')} onPress={() => showPrivacyOptions().catch(() => {})} />
+            ) : null}
             <Button label={t('rateApp')} onPress={openRating} />
             <Button label={t('shareApp')} onPress={handleShareApp} />
             {shareStatus ? <ThemedText type="small">{shareStatus}</ThemedText> : null}
           </Section>
         </ScrollView>
+        <AdBanner />
       </SafeAreaView>
 
       <AboutSheet visible={sheet === 'about'} onClose={() => setSheet(null)} />

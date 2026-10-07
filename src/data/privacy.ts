@@ -9,7 +9,9 @@ type Section = { title: string; body: string };
 export const PRIVACY_SECTIONS: Section[] = [
   {
     title: 'Summary',
-    body: `Wird is made by ${COMPANY}. The app works without an account and we do not collect, store or sell personal information about you.`,
+    body: ADS_ENABLED
+      ? `Wird is made by ${COMPANY}. The app works without an account, and we ourselves do not collect, store or sell personal information about you. The app shows ads from Google, which are described under Advertising below.`
+      : `Wird is made by ${COMPANY}. The app works without an account and we do not collect, store or sell personal information about you.`,
   },
   {
     title: 'What stays on your device',
@@ -31,7 +33,7 @@ export const PRIVACY_SECTIONS: Section[] = [
     ? [
         {
           title: 'Advertising',
-          body: 'Wird shows ads provided by Google AdMob. To show and measure ads, Google may collect information such as your device\'s advertising identifier, approximate location derived from your IP address, and how you interact with ads. You can limit ad tracking in your phone\'s privacy settings. Google explains how it uses this information at policies.google.com/technologies/partner-sites.',
+          body: 'Wird shows ads provided by Google AdMob. To show and measure ads, Google may collect information such as your device\'s advertising identifier, approximate location derived from your IP address, and how you interact with ads. Where the law requires it, the app asks for your consent first, and you can change that choice at any time under Settings, Ad privacy choices. You can also limit ad tracking in your phone\'s privacy settings. Google explains how it uses this information at policies.google.com/technologies/partner-sites.',
         },
       ]
     : []),

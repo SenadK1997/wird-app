@@ -159,6 +159,7 @@ export const en = {
     about: 'About',
     aboutWird: 'About Wird',
     privacyPolicy: 'Privacy policy',
+    adChoices: 'Ad privacy choices',
     rateApp: 'Rate Wird',
     shareApp: 'Share the app',
     shareAppText: 'Wird is a simple dhikr and tasbih counter. {link}',

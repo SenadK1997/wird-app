@@ -12,6 +12,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 
+import { AdsProvider } from '@/ads/ads-provider';
 import AppTabs from '@/components/app-tabs';
 import { ConfirmProvider } from '@/components/confirm-dialog';
 import { LaunchScreen } from '@/components/launch-screen';
@@ -73,9 +74,11 @@ function ThemedApp() {
   return (
     <ThemeProvider value={navigationTheme}>
       <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
-      <ConfirmProvider>
-        <AppTabs />
-      </ConfirmProvider>
+      <AdsProvider launched={launched}>
+        <ConfirmProvider>
+          <AppTabs />
+        </ConfirmProvider>
+      </AdsProvider>
       {/* The welcome screen waits for the launch sequence, so the two are never on top of each other. */}
       <Welcome ready={launched} />
       {launched ? null : <LaunchScreen onDone={() => setLaunched(true)} />}

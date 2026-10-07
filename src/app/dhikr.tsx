@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { AdSlot } from '@/components/ad-slot';
+import { AdBanner } from '@/components/ad-banner';
 import { Button } from '@/components/button';
 import { Chip } from '@/components/chip';
 import { useConfirm } from '@/components/confirm-dialog';
@@ -243,9 +243,9 @@ export default function DhikrScreen() {
               <Button label={t('addCustom')} onPress={() => openDhikrForm()} />
             ) : null}
 
-            <AdSlot />
           </View>
         </ScrollView>
+        <AdBanner />
       </SafeAreaView>
 
       <DhikrForm

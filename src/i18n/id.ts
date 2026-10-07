@@ -160,6 +160,7 @@ export const id: Translations = {
     about: 'Tentang',
     aboutWird: 'Tentang Wird',
     privacyPolicy: 'Kebijakan privasi',
+    adChoices: 'Pilihan privasi iklan',
     rateApp: 'Beri nilai Wird',
     shareApp: 'Bagikan aplikasi',
     shareAppText: 'Wird adalah penghitung dzikir dan tasbih yang sederhana. {link}',

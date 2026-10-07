@@ -46,6 +46,8 @@ type Settings = {
   onboarded: boolean;
   /** Day (`YYYY-MM-DD`) the app last asked for a store rating, or `null` if it never has. */
   reviewAskedOn: string | null;
+  /** When the app-open ad was last shown, in milliseconds since 1970. 0 if it never has been. */
+  lastAppOpenAdAt: number;
 };
 
 type State = Settings & {
@@ -99,6 +101,7 @@ const initialState: State = {
   language: 'system',
   onboarded: false,
   reviewAskedOn: null,
+  lastAppOpenAdAt: 0,
 };
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>

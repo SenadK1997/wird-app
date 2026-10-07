@@ -3,7 +3,7 @@ import { useCallback, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { AdSlot } from '@/components/ad-slot';
+import { AdBanner } from '@/components/ad-banner';
 import { Button } from '@/components/button';
 import { MonthCalendar } from '@/components/month-calendar';
 import { ProgressBar } from '@/components/progress-bar';
@@ -118,8 +118,8 @@ export default function HistoryScreen() {
             })}
           </ThemedView>
 
-          <AdSlot />
         </ScrollView>
+        <AdBanner />
       </SafeAreaView>
 
       <ShareDialog

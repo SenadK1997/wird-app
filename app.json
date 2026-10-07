@@ -49,7 +49,22 @@
       "expo-audio",
       "expo-sharing",
       "expo-asset",
-      "expo-font"
+      "expo-font",
+      [
+        "react-native-google-mobile-ads",
+        {
+          "iosAppId": "ca-app-pub-9103637559448321~3838918984",
+          "skAdNetworkItems": [
+            "cstr6suwn9.skadnetwork"
+          ]
+        }
+      ],
+      [
+        "expo-tracking-transparency",
+        {
+          "userTrackingPermission": "This lets the ads in Wird be more relevant to you. The app works the same whichever you choose."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

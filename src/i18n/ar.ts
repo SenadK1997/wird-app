@@ -159,6 +159,7 @@ export const ar: Translations = {
     about: 'حول',
     aboutWird: 'حول Wird',
     privacyPolicy: 'سياسة الخصوصية',
+    adChoices: 'خيارات خصوصية الإعلانات',
     rateApp: 'قيّم Wird',
     shareApp: 'شارك التطبيق',
     shareAppText: 'Wird عدّاد بسيط للذكر والتسبيح. {link}',

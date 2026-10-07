@@ -159,6 +159,7 @@ export const ur: Translations = {
     about: 'ایپ کے بارے میں',
     aboutWird: 'Wird کے بارے میں',
     privacyPolicy: 'رازداری کی پالیسی',
+    adChoices: 'اشتہارات کی رازداری کے اختیارات',
     rateApp: 'Wird کو ریٹ کریں',
     shareApp: 'ایپ شیئر کریں',
     shareAppText: 'Wird ذکر اور تسبیح کا ایک سادہ کاؤنٹر ہے۔ {link}',

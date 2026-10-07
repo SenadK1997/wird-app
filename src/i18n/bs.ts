@@ -159,6 +159,7 @@ export const bs: Translations = {
     about: 'O aplikaciji',
     aboutWird: 'O Wirdu',
     privacyPolicy: 'Pravila privatnosti',
+    adChoices: 'Postavke privatnosti oglasa',
     rateApp: 'Ocijeni Wird',
     shareApp: 'Podijeli aplikaciju',
     shareAppText: 'Wird je jednostavan brojač zikra i tesbiha. {link}',

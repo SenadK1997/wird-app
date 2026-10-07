@@ -12,7 +12,7 @@ export const CONTACT_EMAIL = 'senad.okt97@gmail.com';
 export const APP_STORE_ID = '';
 
 /** Turns on the advertising section of the privacy policy. Set to true when ads ship. */
-export const ADS_ENABLED = false;
+export const ADS_ENABLED = true;
 
 /** Public pages, served by GitHub Pages from the docs folder. Apple asks for both addresses. */
 export const SUPPORT_URL = 'https://senadk1997.github.io/wird-app/';

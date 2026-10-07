@@ -160,6 +160,7 @@ export const tr: Translations = {
     about: 'Hakkında',
     aboutWird: 'Wird hakkında',
     privacyPolicy: 'Gizlilik politikası',
+    adChoices: 'Reklam gizlilik tercihleri',
     rateApp: "Wird'i değerlendir",
     shareApp: 'Uygulamayı paylaş',
     shareAppText: 'Wird, sade bir zikir ve tesbih sayacıdır. {link}',
