@@ -13,7 +13,7 @@ import { useI18n } from '@/i18n';
 export type DhikrFormValues = Pick<Dhikr, 'title' | 'transliteration' | 'arabic' | 'target'>;
 
 /** Room for a whole dua, in the text and Arabic fields alike. */
-const MAX_TEXT_LENGTH = 3000;
+const MAX_TEXT_LENGTH = 10000;
 
 type DhikrFormProps = {
   visible: boolean;
