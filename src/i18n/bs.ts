@@ -59,6 +59,8 @@ export const bs: Translations = {
     editDhikr: 'Uredi zikr',
     name: 'Naziv',
     namePlaceholder: 'npr. Ya Latif',
+    textOptional: 'Tekst (neobavezno)',
+    textPlaceholder: 'Cijeli tekst zikra ili dove',
     arabicOptional: 'Arapski tekst (neobavezno)',
     targetCount: 'Ciljni broj',
     errorName: 'Unesi naziv zikra.',

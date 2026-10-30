@@ -10,7 +10,10 @@ import { MAX_TARGET, type Dhikr } from '@/data/dhikr';
 import { useTheme } from '@/hooks/use-theme';
 import { useI18n } from '@/i18n';
 
-export type DhikrFormValues = Pick<Dhikr, 'title' | 'arabic' | 'target'>;
+export type DhikrFormValues = Pick<Dhikr, 'title' | 'transliteration' | 'arabic' | 'target'>;
+
+/** Room for a whole dua, in the text and Arabic fields alike. */
+const MAX_TEXT_LENGTH = 3000;
 
 type DhikrFormProps = {
   visible: boolean;
@@ -35,6 +38,7 @@ function FormBody({ editing, onSubmit, onClose }: Omit<DhikrFormProps, 'visible'
   const theme = useTheme();
   const { t } = useI18n();
   const [title, setTitle] = useState(editing?.title ?? '');
+  const [text, setText] = useState(editing?.transliteration ?? '');
   const [arabic, setArabic] = useState(editing?.arabic ?? '');
   const [target, setTarget] = useState(String(editing?.target ?? 33));
   const [error, setError] = useState<string | null>(null);
@@ -52,7 +56,12 @@ function FormBody({ editing, onSubmit, onClose }: Omit<DhikrFormProps, 'visible'
       setError(t('errorTarget', { max: MAX_TARGET }));
       return;
     }
-    onSubmit({ title: trimmedTitle, arabic: arabic.trim() || undefined, target: parsedTarget });
+    onSubmit({
+      title: trimmedTitle,
+      transliteration: text.trim() || undefined,
+      arabic: arabic.trim() || undefined,
+      target: parsedTarget,
+    });
   };
 
   return (
@@ -76,6 +85,20 @@ function FormBody({ editing, onSubmit, onClose }: Omit<DhikrFormProps, 'visible'
           </View>
 
           <View style={styles.field}>
+            <ThemedText type="smallBold">{t('textOptional')}</ThemedText>
+            <TextInput
+              accessibilityLabel={t('textOptional')}
+              value={text}
+              onChangeText={setText}
+              placeholder={t('textPlaceholder')}
+              placeholderTextColor={theme.textSecondary}
+              style={[inputStyle, styles.textInput]}
+              maxLength={MAX_TEXT_LENGTH}
+              multiline
+            />
+          </View>
+
+          <View style={styles.field}>
             <ThemedText type="smallBold">{t('arabicOptional')}</ThemedText>
             <TextInput
               accessibilityLabel={t('arabicOptional')}
@@ -83,7 +106,7 @@ function FormBody({ editing, onSubmit, onClose }: Omit<DhikrFormProps, 'visible'
               onChangeText={setArabic}
               placeholderTextColor={theme.textSecondary}
               style={[inputStyle, styles.arabicInput]}
-              maxLength={600}
+              maxLength={MAX_TEXT_LENGTH}
               multiline
             />
           </View>
@@ -135,6 +158,10 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.three,
     paddingHorizontal: Spacing.three,
     borderRadius: Spacing.three,
+  },
+  textInput: {
+    minHeight: 96,
+    textAlignVertical: 'top',
   },
   arabicInput: {
     fontFamily: AppFonts.arabic,

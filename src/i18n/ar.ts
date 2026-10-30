@@ -59,6 +59,8 @@ export const ar: Translations = {
     editDhikr: 'تعديل الذكر',
     name: 'الاسم',
     namePlaceholder: 'مثال: يا لطيف',
+    textOptional: 'النص بالحروف اللاتينية (اختياري)',
+    textPlaceholder: 'النص الكامل للذكر أو الدعاء',
     arabicOptional: 'النص العربي (اختياري)',
     targetCount: 'العدد المستهدف',
     errorName: 'أدخل اسمًا للذكر.',

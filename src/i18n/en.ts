@@ -58,6 +58,8 @@ export const en = {
     editDhikr: 'Edit dhikr',
     name: 'Name',
     namePlaceholder: 'e.g. Ya Latif',
+    textOptional: 'Text (optional)',
+    textPlaceholder: 'The full words of the dhikr or dua',
     arabicOptional: 'Arabic text (optional)',
     targetCount: 'Target count',
     errorName: 'Enter a name for the dhikr.',

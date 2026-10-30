@@ -59,6 +59,8 @@ export const ur: Translations = {
     editDhikr: 'ذکر میں ترمیم',
     name: 'نام',
     namePlaceholder: 'مثلاً یا لطیف',
+    textOptional: 'متن (اختیاری)',
+    textPlaceholder: 'ذکر یا دعا کا پورا متن',
     arabicOptional: 'عربی متن (اختیاری)',
     targetCount: 'ہدف کی تعداد',
     errorName: 'ذکر کا نام درج کریں۔',

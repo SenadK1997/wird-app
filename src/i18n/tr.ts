@@ -59,6 +59,8 @@ export const tr: Translations = {
     editDhikr: 'Zikri düzenle',
     name: 'Ad',
     namePlaceholder: 'örn. Ya Latif',
+    textOptional: 'Metin (isteğe bağlı)',
+    textPlaceholder: 'Zikrin veya duanın tam metni',
     arabicOptional: 'Arapça metin (isteğe bağlı)',
     targetCount: 'Hedef sayı',
     errorName: 'Zikir için bir ad girin.',

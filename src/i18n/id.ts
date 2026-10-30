@@ -59,6 +59,8 @@ export const id: Translations = {
     editDhikr: 'Ubah dzikir',
     name: 'Nama',
     namePlaceholder: 'mis. Ya Latif',
+    textOptional: 'Teks (opsional)',
+    textPlaceholder: 'Bacaan lengkap dzikir atau doa',
     arabicOptional: 'Teks Arab (opsional)',
     targetCount: 'Jumlah target',
     errorName: 'Masukkan nama dzikir.',

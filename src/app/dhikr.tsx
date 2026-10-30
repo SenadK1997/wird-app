@@ -286,7 +286,8 @@ function DhikrRow({
   const theme = useTheme();
   const { t, meaning } = useI18n();
   const stacked = (dhikr.arabic?.length ?? 0) > LONG_ARABIC;
-  const translation = meaning(dhikr.id);
+  // Custom dhikr have no translation, so their own text is previewed in its place.
+  const subtitle = meaning(dhikr.id) ?? (dhikr.builtIn ? undefined : dhikr.transliteration);
 
   return (
     <ThemedView
@@ -304,9 +305,9 @@ function DhikrRow({
         ) : null}
         <View style={styles.rowText}>
           <ThemedText type="smallBold">{dhikr.title}</ThemedText>
-          {translation ? (
+          {subtitle ? (
             <ThemedText type="small" themeColor="textSecondary" numberOfLines={ARABIC_PREVIEW_LINES}>
-              {translation}
+              {subtitle}
             </ThemedText>
           ) : null}
           <ThemedText type="small" themeColor="textSecondary">

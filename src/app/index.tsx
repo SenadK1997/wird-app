@@ -22,6 +22,8 @@ const KEEP_AWAKE_TAG = 'counter';
 const LONG_ARABIC = 40;
 /** Longer still (a whole verse or surah) gets the smallest type so it needs less scrolling. */
 const VERY_LONG_ARABIC = 140;
+/** Text longer than this (a custom dua typed in full) gets smaller type too. */
+const LONG_TEXT = 80;
 
 export default function CounterScreen() {
   const theme = useTheme();
@@ -68,7 +70,8 @@ export default function CounterScreen() {
   const title = dhikrTitle(selected);
 
   const arabicLength = selected.arabic?.length ?? 0;
-  const long = arabicLength > LONG_ARABIC;
+  const long =
+    arabicLength > LONG_ARABIC || (selected.transliteration?.length ?? 0) > LONG_TEXT;
   const arabicStyle =
     arabicLength > VERY_LONG_ARABIC ? styles.arabicVeryLong : long ? styles.arabicLong : styles.arabic;
   const translation = meaning(selected.id);

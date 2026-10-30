@@ -263,7 +263,7 @@ function reducer(state: State, action: Action): State {
   }
 }
 
-type CustomDhikrInput = Pick<Dhikr, 'title' | 'arabic' | 'target'>;
+type CustomDhikrInput = Pick<Dhikr, 'title' | 'transliteration' | 'arabic' | 'target'>;
 type FlowInput = { title: string; steps: FlowStep[] };
 
 type Store = Settings & {
