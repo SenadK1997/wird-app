@@ -1,19 +1,43 @@
 import { FREE_COUNTER_ID, type CategoryId, type Dhikr, type Flow } from '@/data/dhikr';
+import { NAME_MEANINGS } from '@/data/names';
 import { useDhikrStore } from '@/store/dhikr-store';
 
 import { ar } from './ar';
+import { bn } from './bn';
 import { bs } from './bs';
+import { de } from './de';
 import { en, type Translations, type UiKey } from './en';
+import { fr } from './fr';
 import { id } from './id';
 import { LANGUAGES, resolveLanguage, type LanguageCode } from './languages';
+import { ms } from './ms';
+import { ru } from './ru';
 import { tr } from './tr';
 import { ur } from './ur';
 
-const TRANSLATIONS: Record<LanguageCode, Translations> = { en, bs, tr, id, ar, ur };
+const TRANSLATIONS: Record<LanguageCode, Translations> = {
+  en,
+  bs,
+  tr,
+  id,
+  ms,
+  fr,
+  de,
+  ru,
+  bn,
+  ar,
+  ur,
+};
 
 const CATEGORY_KEYS: Record<CategoryId, UiKey> = {
   essentials: 'catEssentials',
   adhkar: 'catAdhkar',
+  names: 'catNames',
+  sleep: 'catSleep',
+  home: 'catHome',
+  mosque: 'catMosque',
+  food: 'catFood',
+  travel: 'catTravel',
   protection: 'catProtection',
   rizq: 'catRizq',
   forgiveness: 'catForgiveness',
@@ -53,7 +77,8 @@ export function useI18n() {
     rtl: LANGUAGES.some((l) => l.code === code && l.rtl),
     formatNumber,
     /** Meaning of a built-in dhikr in the current language, if there is one. */
-    meaning: (dhikrId: string): string | undefined => strings.dhikr[dhikrId],
+    meaning: (dhikrId: string): string | undefined =>
+      strings.dhikr[dhikrId] ?? NAME_MEANINGS[dhikrId]?.[code],
     /** Name of a dhikr as shown in lists. Only the free counter's name is translated. */
     dhikrTitle: (dhikr: Pick<Dhikr, 'id' | 'title'>) =>
       dhikr.id === FREE_COUNTER_ID ? t('freeCounter') : dhikr.title,

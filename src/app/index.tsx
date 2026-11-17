@@ -1,7 +1,7 @@
 import * as Haptics from 'expo-haptics';
 import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
 import { useFocusEffect } from 'expo-router';
-import { useCallback } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -12,6 +12,7 @@ import { ScrollArea } from '@/components/scroll-area';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { AppFonts, BottomTabInset, MaxContentWidth, Spacing, TopTabInset } from '@/constants/theme';
+import { useRatingPrompt } from '@/hooks/use-rating-prompt';
 import { useTapSound } from '@/hooks/use-tap-sound';
 import { useTheme } from '@/hooks/use-theme';
 import { useI18n } from '@/i18n';
@@ -59,6 +60,21 @@ export default function CounterScreen() {
         deactivateKeepAwake(KEEP_AWAKE_TAG).catch(() => {});
       };
     }, [keepAwake])
+  );
+
+  // Leaving the counter right after reaching the daily goal is a good moment to ask for a rating.
+  // Read through a ref, so counting itself never triggers the check.
+  const askForRating = useRatingPrompt();
+  const leaveCheck = useRef(() => {});
+  useEffect(() => {
+    leaveCheck.current = () => {
+      if (goal !== null && todayTotal >= goal) askForRating();
+    };
+  }, [goal, todayTotal, askForRating]);
+  useFocusEffect(
+    useCallback(() => {
+      return () => leaveCheck.current();
+    }, [])
   );
 
   // A target of 0 is the free counter: it counts up for ever, with no rounds and no text.

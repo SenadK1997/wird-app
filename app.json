@@ -2,7 +2,7 @@
   "expo": {
     "name": "Wird",
     "slug": "wird",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "orientation": "portrait",
     "icon": "./assets/images/app-icon.png",
     "scheme": "wird",
@@ -12,6 +12,22 @@
       "supportsTablet": false,
       "config": {
         "usesNonExemptEncryption": false
+      },
+      "infoPlist": {
+        "CFBundleLocalizations": [
+          "en",
+          "bs",
+          "tr",
+          "id",
+          "ms",
+          "fr",
+          "de",
+          "ru",
+          "bn",
+          "ar",
+          "ur"
+        ],
+        "CFBundleAllowMixedLocalizations": true
       }
     },
     "android": {

@@ -1,3 +1,5 @@
+import { NAMES_OF_ALLAH } from './names';
+
 export type Dhikr = {
   id: string;
   /** Name shown in lists: the transliteration, shortened for long duas. */
@@ -16,6 +18,12 @@ export type Dhikr = {
 export const CATEGORY_IDS = [
   'essentials',
   'adhkar',
+  'names',
+  'sleep',
+  'home',
+  'mosque',
+  'food',
+  'travel',
   'protection',
   'rizq',
   'forgiveness',
@@ -295,6 +303,141 @@ export const SUGGESTED_DHIKR: Dhikr[] = [
     category: 'hardship',
     source: 'Tirmidhi 3524',
   }),
+
+  builtIn({
+    id: 'bismika-amutu',
+    title: 'Bismika Allahumma amutu wa ahya',
+    arabic: 'بِاسْمِكَ اللَّهُمَّ أَمُوتُ وَأَحْيَا',
+    target: 1,
+    category: 'sleep',
+    source: 'Bukhari 6324',
+  }),
+  builtIn({
+    id: 'bismika-rabbi',
+    title: "Bismika Rabbi wada'tu janbi",
+    transliteration:
+      "Bismika Rabbi wada'tu janbi, wa bika arfa'uh, in amsakta nafsi farhamha, wa in arsaltaha fahfazha bima tahfazu bihi 'ibadakas-salihin",
+    arabic:
+      'بِاسْمِكَ رَبِّي وَضَعْتُ جَنْبِي، وَبِكَ أَرْفَعُهُ، إِنْ أَمْسَكْتَ نَفْسِي فَارْحَمْهَا، وَإِنْ أَرْسَلْتَهَا فَاحْفَظْهَا بِمَا تَحْفَظُ بِهِ عِبَادَكَ الصَّالِحِينَ',
+    target: 1,
+    category: 'sleep',
+    source: 'Bukhari 6320',
+  }),
+  builtIn({
+    id: 'qini-adhabak',
+    title: "Allahumma qini 'adhabak",
+    transliteration: "Allahumma qini 'adhabaka yawma tab'athu 'ibadak",
+    arabic: 'اللَّهُمَّ قِنِي عَذَابَكَ يَوْمَ تَبْعَثُ عِبَادَكَ',
+    target: 3,
+    category: 'sleep',
+    source: 'Abu Dawud 5045',
+  }),
+  builtIn({
+    id: 'ahyana',
+    title: 'Alhamdu lillahil-ladhi ahyana',
+    transliteration: "Alhamdu lillahil-ladhi ahyana ba'da ma amatana wa ilayhin-nushur",
+    arabic: 'الْحَمْدُ لِلَّهِ الَّذِي أَحْيَانَا بَعْدَ مَا أَمَاتَنَا وَإِلَيْهِ النُّشُورُ',
+    target: 1,
+    category: 'sleep',
+    source: 'Bukhari 6312',
+  }),
+
+  builtIn({
+    id: 'leaving-home',
+    title: "Bismillah, tawakkaltu 'alallah",
+    transliteration: "Bismillah, tawakkaltu 'alallah, wa la hawla wa la quwwata illa billah",
+    arabic: 'بِسْمِ اللَّهِ تَوَكَّلْتُ عَلَى اللَّهِ وَلَا حَوْلَ وَلَا قُوَّةَ إِلَّا بِاللَّهِ',
+    target: 1,
+    category: 'home',
+    source: 'Abu Dawud 5095',
+  }),
+  builtIn({
+    id: 'entering-home',
+    title: 'Bismillahi walajna',
+    transliteration: "Bismillahi walajna, wa bismillahi kharajna, wa 'ala Rabbina tawakkalna",
+    arabic: 'بِسْمِ اللَّهِ وَلَجْنَا، وَبِسْمِ اللَّهِ خَرَجْنَا، وَعَلَى رَبِّنَا تَوَكَّلْنَا',
+    target: 1,
+    category: 'home',
+    source: 'Abu Dawud 5096',
+  }),
+
+  builtIn({
+    id: 'entering-mosque',
+    title: 'Allahummaftah li abwaba rahmatik',
+    arabic: 'اللَّهُمَّ افْتَحْ لِي أَبْوَابَ رَحْمَتِكَ',
+    target: 1,
+    category: 'mosque',
+    source: 'Muslim 713',
+  }),
+  builtIn({
+    id: 'leaving-mosque',
+    title: "Allahumma inni as'aluka min fadlik",
+    arabic: 'اللَّهُمَّ إِنِّي أَسْأَلُكَ مِنْ فَضْلِكَ',
+    target: 1,
+    category: 'mosque',
+    source: 'Muslim 713',
+  }),
+
+  builtIn({
+    id: 'before-eating',
+    title: 'Bismillah',
+    arabic: 'بِسْمِ اللَّهِ',
+    target: 1,
+    category: 'food',
+    source: 'Bukhari 5376',
+  }),
+  builtIn({
+    id: 'forgot-bismillah',
+    title: 'Bismillahi awwalahu wa akhirahu',
+    arabic: 'بِسْمِ اللَّهِ أَوَّلَهُ وَآخِرَهُ',
+    target: 1,
+    category: 'food',
+    source: 'Abu Dawud 3767',
+  }),
+  builtIn({
+    id: 'after-eating',
+    title: "Alhamdu lillahil-ladhi at'amani",
+    transliteration:
+      "Alhamdu lillahil-ladhi at'amani hadha wa razaqanihi min ghayri hawlin minni wa la quwwah",
+    arabic:
+      'الْحَمْدُ لِلَّهِ الَّذِي أَطْعَمَنِي هَذَا وَرَزَقَنِيهِ مِنْ غَيْرِ حَوْلٍ مِنِّي وَلَا قُوَّةٍ',
+    target: 1,
+    category: 'food',
+    source: 'Tirmidhi 3458',
+  }),
+
+  builtIn({
+    id: 'travel-dua',
+    title: 'Subhanal-ladhi sakhkhara lana hadha',
+    transliteration:
+      'Subhanal-ladhi sakhkhara lana hadha wa ma kunna lahu muqrinin, wa inna ila Rabbina lamunqalibun',
+    arabic:
+      'سُبْحَانَ الَّذِي سَخَّرَ لَنَا هَٰذَا وَمَا كُنَّا لَهُ مُقْرِنِينَ وَإِنَّا إِلَىٰ رَبِّنَا لَمُنقَلِبُونَ',
+    target: 1,
+    category: 'travel',
+    source: 'Quran 43:13–14 · Muslim 1342',
+  }),
+  builtIn({
+    id: 'travel-birr',
+    title: "Allahumma inna nas'aluka fi safarina",
+    transliteration:
+      "Allahumma inna nas'aluka fi safarina hadhal-birra wat-taqwa, wa minal-'amali ma tarda",
+    arabic: 'اللَّهُمَّ إِنَّا نَسْأَلُكَ فِي سَفَرِنَا هَذَا الْبِرَّ وَالتَّقْوَى، وَمِنَ الْعَمَلِ مَا تَرْضَى',
+    target: 1,
+    category: 'travel',
+    source: 'Muslim 1342',
+  }),
+  builtIn({
+    id: 'returning-travel',
+    title: "Ayibuna, ta'ibuna, 'abiduna",
+    transliteration: "Ayibuna, ta'ibuna, 'abiduna, li Rabbina hamidun",
+    arabic: 'آيِبُونَ تَائِبُونَ عَابِدُونَ لِرَبِّنَا حَامِدُونَ',
+    target: 1,
+    category: 'travel',
+    source: 'Muslim 1342',
+  }),
+
+  ...NAMES_OF_ALLAH,
 ];
 
 export const FREE_COUNTER_ID = 'free';

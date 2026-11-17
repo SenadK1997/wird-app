@@ -11,22 +11,18 @@ import { ShareDialog } from '@/components/share-dialog';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { AppFonts, BottomTabInset, MaxContentWidth, Spacing, TopTabInset } from '@/constants/theme';
+import { useRatingPrompt } from '@/hooks/use-rating-prompt';
 import { useTheme } from '@/hooks/use-theme';
 import { useI18n } from '@/i18n';
 import { bestStreak, currentStreak, dayTotal, useDhikrStore } from '@/store/dhikr-store';
-import { dayKey, formatDay, lastDays } from '@/utils/date';
-import { requestRating } from '@/utils/store';
-
-/** Ask for a rating only once someone has used the app on a few days, and not again for months. */
-const RATING_MIN_DAYS = 3;
-const RATING_MIN_TOTAL = 100;
-const RATING_REPEAT_DAYS = 120;
+import { formatDay, lastDays } from '@/utils/date';
 
 export default function HistoryScreen() {
   const theme = useTheme();
   const { t, locale, formatNumber, dhikrTitle } = useI18n();
-  const { history, todayTotal, goal, reviewAskedOn, findDhikr, set } = useDhikrStore();
+  const { history, todayTotal, goal, findDhikr } = useDhikrStore();
   const [sharing, setSharing] = useState(false);
+  const askForRating = useRatingPrompt();
 
   const days = lastDays(7);
   const todayEntries = Object.entries(history[days[0]] ?? {})
@@ -34,20 +30,12 @@ export default function HistoryScreen() {
     .sort(([, a], [, b]) => b - a);
   const streak = currentStreak(history);
   const allTime = Object.values(history).reduce((sum, totals) => sum + dayTotal(totals), 0);
-  const activeDays = Object.values(history).filter((totals) => dayTotal(totals) > 0).length;
 
-  // Looking at History is a calm moment; the counter is never interrupted with a rating prompt.
+  // Looking at History is a calm moment to ask for a rating.
   useFocusEffect(
     useCallback(() => {
-      if (activeDays < RATING_MIN_DAYS || allTime < RATING_MIN_TOTAL) return;
-      const today = dayKey();
-      if (reviewAskedOn) {
-        const daysSince = (Date.parse(today) - Date.parse(reviewAskedOn)) / 86_400_000;
-        if (daysSince < RATING_REPEAT_DAYS) return;
-      }
-      set({ reviewAskedOn: today });
-      requestRating();
-    }, [activeDays, allTime, reviewAskedOn, set])
+      askForRating();
+    }, [askForRating])
   );
 
   return (

@@ -54,6 +54,12 @@ export const ar: Translations = {
     catRizq: 'الرزق',
     catForgiveness: 'الاستغفار',
     catHardship: 'الكرب',
+    catNames: 'الأسماء الحسنى',
+    catSleep: 'النوم والاستيقاظ',
+    catHome: 'المنزل',
+    catMosque: 'المسجد',
+    catFood: 'الطعام',
+    catTravel: 'السفر',
 
     newDhikr: 'ذكر جديد',
     editDhikr: 'تعديل الذكر',

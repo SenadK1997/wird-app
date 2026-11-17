@@ -208,6 +208,8 @@ export default function DhikrScreen() {
               selected={tab === 'favourites'}
               onPress={() => setTab('favourites')}
             />
+            {/* Next to favourites, so adding your own dhikr is seen without scrolling the row. */}
+            <Chip label={t('myDhikr')} selected={tab === 'custom'} onPress={() => setTab('custom')} />
             {CATEGORY_IDS.map((category) => (
               <Chip
                 key={category}
@@ -216,7 +218,6 @@ export default function DhikrScreen() {
                 onPress={() => setTab(category)}
               />
             ))}
-            <Chip label={t('myDhikr')} selected={tab === 'custom'} onPress={() => setTab('custom')} />
           </ScrollView>
 
           <View style={[styles.padded, styles.list]}>

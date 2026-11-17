@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { Modal, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { Modal, Platform, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/button';
+import { FormHeader } from '@/components/form-header';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { AppFonts, MaxContentWidth, Spacing } from '@/constants/theme';
@@ -113,7 +114,11 @@ function FormBody({ editing, onSubmit, onClose }: Omit<FlowFormProps, 'visible'>
   return (
     <ThemedView style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
-        <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+        <FormHeader onCancel={onClose} onSave={handleSave} error={error} />
+        <ScrollView
+          contentContainerStyle={styles.content}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}>
           <ThemedText type="subtitle">{t(editing ? 'editFlow' : 'newFlow')}</ThemedText>
 
           <View style={styles.field}>
@@ -172,13 +177,6 @@ function FormBody({ editing, onSubmit, onClose }: Omit<FlowFormProps, 'visible'>
               onPress={() => setPicking(true)}
               disabled={steps.length >= MAX_FLOW_STEPS}
             />
-          </View>
-
-          {error ? <ThemedText style={{ color: theme.danger }}>{error}</ThemedText> : null}
-
-          <View style={styles.buttons}>
-            <Button label={t('cancel')} onPress={onClose} style={styles.button} />
-            <Button label={t('save')} onPress={handleSave} variant="primary" style={styles.button} />
           </View>
         </ScrollView>
       </SafeAreaView>
@@ -259,14 +257,6 @@ const styles = StyleSheet.create({
     borderRadius: Spacing.two,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  buttons: {
-    flexDirection: 'row',
-    gap: Spacing.two,
-    marginTop: Spacing.two,
-  },
-  button: {
-    flex: 1,
   },
   pressed: {
     opacity: 0.7,

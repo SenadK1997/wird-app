@@ -5,6 +5,11 @@ export const LANGUAGES = [
   { code: 'bs', name: 'Bosanski', rtl: false },
   { code: 'tr', name: 'Türkçe', rtl: false },
   { code: 'id', name: 'Bahasa Indonesia', rtl: false },
+  { code: 'ms', name: 'Bahasa Melayu', rtl: false },
+  { code: 'fr', name: 'Français', rtl: false },
+  { code: 'de', name: 'Deutsch', rtl: false },
+  { code: 'ru', name: 'Русский', rtl: false },
+  { code: 'bn', name: 'বাংলা', rtl: false },
   { code: 'ar', name: 'العربية', rtl: true },
   { code: 'ur', name: 'اردو', rtl: true },
 ] as const;
