@@ -64,7 +64,9 @@ export function NotificationSync({ active }: { active: boolean }) {
 
   // Tapping a nudge opens its counter. Keep the latest `select` without re-subscribing.
   const selectRef = useRef(select);
-  selectRef.current = select;
+  useEffect(() => {
+    selectRef.current = select;
+  }, [select]);
   useEffect(() => {
     const sub = onNotificationTap((id) => {
       selectRef.current(id);

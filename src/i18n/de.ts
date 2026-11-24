@@ -140,6 +140,9 @@ export const de: Translations = {
     addReminder: 'Erinnerung hinzufügen',
     reminderLabel: 'Erinnerung um {time}',
     remindersWeb: 'Erinnerungen gibt es in der App auf dem Telefon.',
+    dhikrReminders: 'Dhikr-Erinnerungen',
+    dhikrRemindersHint: 'Ein kurzer Vers oder Hadith ein paar Mal am Tag – tippe darauf, um zu zählen',
+    timesPerDay: '{count}× täglich',
     errorNotifications:
       'Mitteilungen sind für Wird ausgeschaltet. Erlaube sie in den Einstellungen des Telefons, um Erinnerungen zu erhalten.',
     errorReminder: 'Die Erinnerung konnte nicht eingerichtet werden. Bitte versuche es erneut.',

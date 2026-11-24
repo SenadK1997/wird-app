@@ -35,6 +35,7 @@ import { openRating, shareApp } from '@/utils/store';
 
 const GOAL_PRESETS = [100, 300, 500, 1000];
 const MINUTE_STEP = 5;
+const NUDGES_PER_DAY = [1, 2, 3];
 
 const THEME_MODES: { mode: ThemeMode; label: UiKey }[] = [
   { mode: 'system', label: 'followPhone' },
@@ -73,6 +74,7 @@ export default function SettingsScreen() {
   // What is being typed for the goal; `null` shows the saved goal.
   const [goalDraft, setGoalDraft] = useState<string | null>(null);
   const [reminderError, setReminderError] = useState<string | null>(null);
+  const [nudgeError, setNudgeError] = useState<string | null>(null);
   const [backupStatus, setBackupStatus] = useState<string | null>(null);
   const [sheet, setSheet] = useState<'about' | 'privacy' | null>(null);
   const [shareStatus, setShareStatus] = useState<string | null>(null);
@@ -95,7 +97,7 @@ export default function SettingsScreen() {
 
   // Turn the dhikr nudges on/off. Turning on needs the user to allow notifications.
   const toggleNudges = async (enabled: boolean) => {
-    setReminderError(null);
+    setNudgeError(null);
     if (!enabled) {
       set({ dhikrRemindersEnabled: false });
       sync({ nudgesEnabled: false }).catch(() => {});
@@ -103,9 +105,9 @@ export default function SettingsScreen() {
     }
     try {
       if (await sync({ nudgesEnabled: true })) set({ dhikrRemindersEnabled: true });
-      else setReminderError(t('errorNotifications'));
+      else setNudgeError(t('errorNotifications'));
     } catch {
-      setReminderError(t('errorReminder'));
+      setNudgeError(t('errorReminder'));
     }
   };
 
@@ -327,6 +329,34 @@ export default function SettingsScreen() {
               </>
             ) : null}
           </Section>
+
+          {remindersSupported ? (
+            <Section title={t('dhikrReminders')}>
+              <SwitchRow
+                label={t('dhikrReminders')}
+                hint={t('dhikrRemindersHint')}
+                value={dhikrRemindersEnabled}
+                onValueChange={toggleNudges}
+              />
+              {dhikrRemindersEnabled ? (
+                <View style={styles.chips}>
+                  {NUDGES_PER_DAY.map((count) => (
+                    <Chip
+                      key={count}
+                      label={t('timesPerDay', { count })}
+                      selected={dhikrRemindersPerDay === count}
+                      onPress={() => setNudgesPerDay(count)}
+                    />
+                  ))}
+                </View>
+              ) : null}
+              {nudgeError ? (
+                <ThemedText type="small" style={{ color: theme.danger }}>
+                  {nudgeError}
+                </ThemedText>
+              ) : null}
+            </Section>
+          ) : null}
 
           <Section title={t('reminders')}>
             {remindersSupported ? (

@@ -140,6 +140,9 @@ export const fr: Translations = {
     addReminder: 'Ajouter un rappel',
     reminderLabel: 'Rappel à {time}',
     remindersWeb: "Les rappels sont disponibles dans l'application mobile.",
+    dhikrReminders: 'Rappels de dhikr',
+    dhikrRemindersHint: 'Un court verset ou hadith quelques fois par jour — touchez-le pour commencer à compter',
+    timesPerDay: '{count} par jour',
     errorNotifications:
       'Les notifications sont désactivées pour Wird. Autorisez-les dans les Réglages du téléphone pour recevoir les rappels.',
     errorReminder: "Le rappel n'a pas pu être programmé. Veuillez réessayer.",

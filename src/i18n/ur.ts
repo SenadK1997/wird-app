@@ -140,6 +140,9 @@ export const ur: Translations = {
     addReminder: 'یاد دہانی شامل کریں',
     reminderLabel: '{time} کی یاد دہانی',
     remindersWeb: 'یاد دہانیاں فون ایپ میں دستیاب ہیں۔',
+    dhikrReminders: 'ذکر کی یاد دہانیاں',
+    dhikrRemindersHint: 'دن میں چند بار ایک مختصر آیت یا حدیث — گنتی شروع کرنے کے لیے ٹیپ کریں',
+    timesPerDay: 'دن میں {count} بار',
     errorNotifications:
       'Wird کے لیے اطلاعات بند ہیں۔ یاد دہانیاں پانے کے لیے فون کی ترتیبات میں اجازت دیں۔',
     errorReminder: 'یاد دہانی سیٹ نہیں ہو سکی۔ دوبارہ کوشش کریں۔',

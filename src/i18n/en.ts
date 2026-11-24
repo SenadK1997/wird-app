@@ -139,6 +139,9 @@ export const en = {
     addReminder: 'Add reminder',
     reminderLabel: 'Reminder at {time}',
     remindersWeb: 'Reminders are available in the phone app.',
+    dhikrReminders: 'Dhikr reminders',
+    dhikrRemindersHint: 'A short verse or hadith a few times a day — tap it to start counting',
+    timesPerDay: '{count} per day',
     errorNotifications:
       "Notifications are turned off for Wird. Allow them in the phone's Settings to get reminders.",
     errorReminder: 'The reminder could not be set. Please try again.',

@@ -140,6 +140,9 @@ export const bs: Translations = {
     addReminder: 'Dodaj podsjetnik',
     reminderLabel: 'Podsjetnik u {time}',
     remindersWeb: 'Podsjetnici su dostupni u aplikaciji na telefonu.',
+    dhikrReminders: 'Podsjetnici na zikr',
+    dhikrRemindersHint: 'Kratak ajet ili hadis nekoliko puta dnevno — dodirni ga da počneš brojati',
+    timesPerDay: '{count}× dnevno',
     errorNotifications:
       'Obavijesti za Wird su isključene. Dozvoli ih u Postavkama telefona da bi podsjetnici stizali.',
     errorReminder: 'Podsjetnik nije postavljen. Pokušaj ponovo.',

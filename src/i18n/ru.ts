@@ -140,6 +140,9 @@ export const ru: Translations = {
     addReminder: 'Добавить напоминание',
     reminderLabel: 'Напоминание в {time}',
     remindersWeb: 'Напоминания доступны в приложении для телефона.',
+    dhikrReminders: 'Напоминания о зикре',
+    dhikrRemindersHint: 'Короткий аят или хадис несколько раз в день — нажмите, чтобы начать счёт',
+    timesPerDay: '{count}× в день',
     errorNotifications:
       'Уведомления для Wird выключены. Разрешите их в Настройках телефона, чтобы получать напоминания.',
     errorReminder: 'Не удалось установить напоминание. Попробуйте ещё раз.',

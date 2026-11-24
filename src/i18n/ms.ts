@@ -140,6 +140,9 @@ export const ms: Translations = {
     addReminder: 'Tambah peringatan',
     reminderLabel: 'Peringatan pada {time}',
     remindersWeb: 'Peringatan tersedia dalam aplikasi telefon.',
+    dhikrReminders: 'Peringatan zikir',
+    dhikrRemindersHint: 'Ayat atau hadis ringkas beberapa kali sehari — ketik untuk mula mengira',
+    timesPerDay: '{count} kali sehari',
     errorNotifications:
       'Pemberitahuan dimatikan untuk Wird. Benarkannya dalam Tetapan telefon untuk menerima peringatan.',
     errorReminder: 'Peringatan tidak dapat ditetapkan. Sila cuba lagi.',
