@@ -9,21 +9,30 @@ import { useI18n } from '@/i18n';
 import { LANGUAGES } from '@/i18n/languages';
 import { useDhikrStore } from '@/store/dhikr-store';
 import { layoutDirection } from '@/utils/direction';
+import { remindersSupported } from '@/utils/reminder';
 
 const GOALS = [100, 300, 500, 1000];
+const NUDGES_PER_DAY = [1, 2, 3];
 
-/** First-launch screen: choose a language and a daily goal, then start. */
+/**
+ * First-launch screen: choose a language, a daily goal and how many dhikr reminders a day,
+ * then start. Starting is what asks the phone to allow notifications (see NotificationSync).
+ */
 export function Welcome({ ready }: { ready: boolean }) {
   const { t, rtl, formatNumber } = useI18n();
-  const { onboarded, language, dailyGoal, set } = useDhikrStore();
+  const { onboarded, language, dailyGoal, dhikrRemindersPerDay, set } = useDhikrStore();
   // `null` means no daily goal.
   const [goal, setGoal] = useState<number | null>(dailyGoal);
+  // `null` means no dhikr reminders.
+  const [nudges, setNudges] = useState<number | null>(dhikrRemindersPerDay);
 
   const handleStart = () => {
     set({
       onboarded: true,
       dailyGoalEnabled: goal !== null,
       ...(goal !== null ? { dailyGoal: goal } : {}),
+      dhikrRemindersEnabled: nudges !== null,
+      ...(nudges !== null ? { dhikrRemindersPerDay: nudges } : {}),
     });
   };
 
@@ -75,6 +84,28 @@ export function Welcome({ ready }: { ready: boolean }) {
                 <Option label={t('noGoal')} selected={goal === null} onPress={() => setGoal(null)} />
               </View>
             </View>
+
+            {remindersSupported ? (
+              <View style={styles.group}>
+                <Text style={styles.label}>{t('dhikrReminders')}</Text>
+                <Text style={styles.hint}>{t('dhikrRemindersHint')}</Text>
+                <View style={styles.options}>
+                  {NUDGES_PER_DAY.map((value) => (
+                    <Option
+                      key={value}
+                      label={t('timesPerDay', { count: value })}
+                      selected={nudges === value}
+                      onPress={() => setNudges(value)}
+                    />
+                  ))}
+                  <Option
+                    label={t('remindersOff')}
+                    selected={nudges === null}
+                    onPress={() => setNudges(null)}
+                  />
+                </View>
+              </View>
+            ) : null}
 
             <View style={styles.card}>
               <Text style={styles.verse}>أَلَا بِذِكْرِ ٱللَّٰهِ تَطْمَئِنُّ ٱلْقُلُوبُ</Text>

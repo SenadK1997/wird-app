@@ -24,6 +24,11 @@ export type NotificationConfig = {
   nudgesEnabled: boolean;
   nudgesPerDay: number;
   nudges: NudgeItem[];
+  /**
+   * Whether the phone may show its "Allow notifications?" question if it has not been answered
+   * with a yes. Off for the quiet reschedule on every launch, so nobody is asked every time.
+   */
+  ask: boolean;
 };
 
 // Show the notification even if the app happens to be open when it fires.
@@ -36,10 +41,10 @@ Notifications.setNotificationHandler({
   }),
 });
 
-async function ensurePermission() {
+async function ensurePermission(ask: boolean) {
   const current = await Notifications.getPermissionsAsync();
   if (current.granted) return true;
-  if (!current.canAskAgain) return false;
+  if (!ask || !current.canAskAgain) return false;
   return (await Notifications.requestPermissionsAsync()).granted;
 }
 
@@ -48,7 +53,16 @@ async function ensurePermission() {
  * rotating dhikr nudges (a verse or hadith a few times a day). Returns `false` when the user
  * has not allowed notifications.
  */
-export async function syncNotifications(cfg: NotificationConfig): Promise<boolean> {
+export function syncNotifications(cfg: NotificationConfig): Promise<boolean> {
+  // One at a time: two overlapping runs could each clear and then both add, doubling every nudge.
+  const run = queue.then(() => scheduleAll(cfg));
+  queue = run.catch(() => {});
+  return run;
+}
+
+let queue: Promise<unknown> = Promise.resolve();
+
+async function scheduleAll(cfg: NotificationConfig): Promise<boolean> {
   const customEnabled = cfg.reminders.filter((r) => r.enabled);
   const wantNudges = cfg.nudgesEnabled && cfg.nudges.length > 0;
 
@@ -56,7 +70,7 @@ export async function syncNotifications(cfg: NotificationConfig): Promise<boolea
     await Notifications.cancelAllScheduledNotificationsAsync();
     return true;
   }
-  if (!(await ensurePermission())) return false;
+  if (!(await ensurePermission(cfg.ask))) return false;
 
   if (Platform.OS === 'android') {
     await Notifications.setNotificationChannelAsync(CHANNEL_CUSTOM, {
@@ -127,10 +141,18 @@ export async function syncNotifications(cfg: NotificationConfig): Promise<boolea
   return true;
 }
 
-/** Calls `handler` with the dhikr id when the user taps a nudge. Returns a subscription. */
+/**
+ * Calls `handler` with the dhikr id when the user taps a nudge. Returns a subscription.
+ * Also handles the tap that opened the app from closed, which arrives before any listener exists.
+ */
 export function onNotificationTap(handler: (dhikrId: string) => void) {
-  return Notifications.addNotificationResponseReceivedListener((response) => {
+  const handle = (response: Notifications.NotificationResponse | null) => {
+    if (!response) return;
+    // Handled once: otherwise the same tap would reopen the counter the next time this mounts.
+    Notifications.clearLastNotificationResponse();
     const id = response.notification.request.content.data?.dhikrId;
     if (typeof id === 'string') handler(id);
-  });
+  };
+  handle(Notifications.getLastNotificationResponse());
+  return Notifications.addNotificationResponseReceivedListener(handle);
 }

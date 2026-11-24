@@ -143,6 +143,7 @@ export const ar: Translations = {
     dhikrReminders: 'تذكيرات الذكر',
     dhikrRemindersHint: 'آية أو حديث قصير عدة مرات في اليوم — اضغط عليه لتبدأ العدّ',
     timesPerDay: '{count} يوميًا',
+    remindersOff: 'إيقاف',
     errorNotifications:
       'الإشعارات متوقفة لتطبيق Wird. اسمح بها من إعدادات الهاتف لتصلك التذكيرات.',
     errorReminder: 'تعذر ضبط التذكير. حاول مرة أخرى.',

@@ -143,6 +143,7 @@ export const bn: Translations = {
     dhikrReminders: 'জিকিরের রিমাইন্ডার',
     dhikrRemindersHint: 'দিনে কয়েকবার একটি ছোট আয়াত বা হাদিস — গণনা শুরু করতে ট্যাপ করুন',
     timesPerDay: 'দিনে {count} বার',
+    remindersOff: 'বন্ধ',
     errorNotifications: 'Wird-এর নোটিফিকেশন বন্ধ আছে। রিমাইন্ডার পেতে ফোনের সেটিংসে সেগুলো চালু করুন।',
     errorReminder: 'রিমাইন্ডার সেট করা যায়নি। আবার চেষ্টা করুন।',
     notificationTitle: 'জিকিরের সময়',

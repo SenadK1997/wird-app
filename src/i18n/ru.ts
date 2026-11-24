@@ -143,6 +143,7 @@ export const ru: Translations = {
     dhikrReminders: 'Напоминания о зикре',
     dhikrRemindersHint: 'Короткий аят или хадис несколько раз в день — нажмите, чтобы начать счёт',
     timesPerDay: '{count}× в день',
+    remindersOff: 'Выкл.',
     errorNotifications:
       'Уведомления для Wird выключены. Разрешите их в Настройках телефона, чтобы получать напоминания.',
     errorReminder: 'Не удалось установить напоминание. Попробуйте ещё раз.',

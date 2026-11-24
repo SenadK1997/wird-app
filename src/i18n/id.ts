@@ -143,6 +143,7 @@ export const id: Translations = {
     dhikrReminders: 'Pengingat dzikir',
     dhikrRemindersHint: 'Ayat atau hadis singkat beberapa kali sehari — ketuk untuk mulai menghitung',
     timesPerDay: '{count} kali sehari',
+    remindersOff: 'Mati',
     errorNotifications:
       'Notifikasi untuk Wird dimatikan. Izinkan di Pengaturan ponsel untuk menerima pengingat.',
     errorReminder: 'Pengingat tidak dapat diatur. Silakan coba lagi.',

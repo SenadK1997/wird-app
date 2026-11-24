@@ -43,6 +43,11 @@ type Settings = {
   dhikrRemindersEnabled: boolean;
   /** How many dhikr nudges to send each day (1–3). */
   dhikrRemindersPerDay: number;
+  /**
+   * App version that last asked to allow notifications, or `null` if none has. Each new version
+   * asks once, so people who skipped the question in an older version see it again after updating.
+   */
+  notificationsAskedVersion: string | null;
   themeMode: ThemeMode;
   accent: AccentId;
   language: LanguageSetting;
@@ -101,6 +106,7 @@ const initialState: State = {
   reminders: [],
   dhikrRemindersEnabled: true,
   dhikrRemindersPerDay: 3,
+  notificationsAskedVersion: null,
   themeMode: 'dark',
   accent: 'gold',
   themeVersion: THEME_VERSION,

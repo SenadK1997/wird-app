@@ -143,6 +143,7 @@ export const fr: Translations = {
     dhikrReminders: 'Rappels de dhikr',
     dhikrRemindersHint: 'Un court verset ou hadith quelques fois par jour — touchez-le pour commencer à compter',
     timesPerDay: '{count} par jour',
+    remindersOff: 'Désactivés',
     errorNotifications:
       'Les notifications sont désactivées pour Wird. Autorisez-les dans les Réglages du téléphone pour recevoir les rappels.',
     errorReminder: "Le rappel n'a pas pu être programmé. Veuillez réessayer.",

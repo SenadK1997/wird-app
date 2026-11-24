@@ -143,6 +143,7 @@ export const bs: Translations = {
     dhikrReminders: 'Podsjetnici na zikr',
     dhikrRemindersHint: 'Kratak ajet ili hadis nekoliko puta dnevno — dodirni ga da počneš brojati',
     timesPerDay: '{count}× dnevno',
+    remindersOff: 'Isključeno',
     errorNotifications:
       'Obavijesti za Wird su isključene. Dozvoli ih u Postavkama telefona da bi podsjetnici stizali.',
     errorReminder: 'Podsjetnik nije postavljen. Pokušaj ponovo.',

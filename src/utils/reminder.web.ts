@@ -13,6 +13,7 @@ export type NotificationConfig = {
   nudgesEnabled: boolean;
   nudgesPerDay: number;
   nudges: NudgeItem[];
+  ask: boolean;
 };
 
 export async function syncNotifications(_cfg: NotificationConfig) {

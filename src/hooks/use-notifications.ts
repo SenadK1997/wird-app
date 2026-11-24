@@ -1,3 +1,4 @@
+import Constants from 'expo-constants';
 import { router } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 
@@ -11,7 +12,12 @@ import {
   type NudgeItem,
 } from '@/utils/reminder';
 
-type Overrides = Partial<Pick<NotificationConfig, 'reminders' | 'nudgesEnabled' | 'nudgesPerDay'>>;
+type Overrides = Partial<
+  Pick<NotificationConfig, 'reminders' | 'nudgesEnabled' | 'nudgesPerDay' | 'ask'>
+>;
+
+/** The installed app version, e.g. "1.0.3". */
+const APP_VERSION = Constants.expoConfig?.version ?? 'unknown';
 
 /**
  * Returns a function that schedules all notifications from the current settings and language:
@@ -44,6 +50,8 @@ export function useNotificationSync() {
         nudgesEnabled: over.nudgesEnabled ?? dhikrRemindersEnabled,
         nudgesPerDay: over.nudgesPerDay ?? dhikrRemindersPerDay,
         nudges,
+        // Changes made in Settings come from the user, so the phone may ask them.
+        ask: over.ask ?? true,
       }),
     [reminders, dhikrRemindersEnabled, dhikrRemindersPerDay, nudges, reminderText]
   );
@@ -55,21 +63,30 @@ export function useNotificationSync() {
  */
 export function NotificationSync({ active }: { active: boolean }) {
   const sync = useNotificationSync();
-  const { onboarded, select } = useDhikrStore();
+  const { onboarded, notificationsAskedVersion, select, set } = useDhikrStore();
 
-  // Reschedule on open and whenever the settings or language change.
+  // The store's actions are new on every change (every count), so read the latest from refs
+  // rather than re-running the effects below each time.
+  const actions = useRef({ select, set });
   useEffect(() => {
-    if (active && onboarded) sync().catch(() => {});
-  }, [active, onboarded, sync]);
+    actions.current = { select, set };
+  }, [select, set]);
 
-  // Tapping a nudge opens its counter. Keep the latest `select` without re-subscribing.
-  const selectRef = useRef(select);
+  // Reschedule on open and whenever the settings or language change. The first launch of each
+  // app version (including the very first, right after the welcome screen) may ask to allow
+  // notifications; every other launch only reschedules quietly.
   useEffect(() => {
-    selectRef.current = select;
-  }, [select]);
+    if (!active || !onboarded) return;
+    const ask = notificationsAskedVersion !== APP_VERSION;
+    // Saved before asking, so a settings change during the question does not ask a second time.
+    if (ask) actions.current.set({ notificationsAskedVersion: APP_VERSION });
+    sync({ ask }).catch(() => {});
+  }, [active, onboarded, notificationsAskedVersion, sync]);
+
+  // Tapping a nudge opens its counter.
   useEffect(() => {
     const sub = onNotificationTap((id) => {
-      selectRef.current(id);
+      actions.current.select(id);
       router.navigate('/');
     });
     return () => sub.remove();
