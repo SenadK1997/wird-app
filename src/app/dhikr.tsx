@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AdBanner } from '@/components/ad-banner';
@@ -24,10 +24,30 @@ const LONG_ARABIC = 30;
 /** A whole verse is too long for a list row, so the list shows only its opening. */
 const ARABIC_PREVIEW_LINES = 3;
 
+// Text symbols rather than an icon set, like the stars. U+FE0E keeps ☀ and ✎ from turning into emoji.
+const FLOW_SYMBOLS: Record<string, string> = {
+  'after-prayer': '۞',
+  morning: '☀︎',
+  evening: '☾',
+};
+const CUSTOM_FLOW_SYMBOL = '↻';
+
+/**
+ * Text folded for searching: lower case, without accents or Arabic vowel marks, and with the
+ * different alif forms made one, so "subhan", "Subḥān" and "سبحان" all match.
+ */
+function fold(text: string) {
+  return text
+    .normalize('NFD')
+    .replace(/\p{Mn}/gu, '')
+    .replace(/[ٱأإآ]/g, 'ا')
+    .toLowerCase();
+}
+
 export default function DhikrScreen() {
   const theme = useTheme();
   const confirm = useConfirm();
-  const { t, categoryLabel, flowTitle } = useI18n();
+  const { t, categoryLabel, flowTitle, formatNumber, meaning } = useI18n();
   const {
     suggested,
     custom,
@@ -50,6 +70,7 @@ export default function DhikrScreen() {
     if (!current || current.id === FREE_COUNTER.id) return 'essentials';
     return current.category ?? 'custom';
   });
+  const [query, setQuery] = useState('');
   const [dhikrFormVisible, setDhikrFormVisible] = useState(false);
   const [editingDhikr, setEditingDhikr] = useState<Dhikr | undefined>(undefined);
   const [flowFormVisible, setFlowFormVisible] = useState(false);
@@ -104,127 +125,198 @@ export default function DhikrScreen() {
     });
   };
 
+  const openTab = (next: Tab) => {
+    setQuery('');
+    setTab(next);
+  };
+
   const all = [...suggested, ...custom];
-  const list =
-    tab === 'custom'
+  const favouriteList = all.filter((d) => favorites.includes(d.id));
+  const search = fold(query.trim());
+  const searching = search.length > 0;
+
+  const list = searching
+    ? all.filter((d) =>
+        [d.title, d.transliteration, d.arabic, meaning(d.id)].some(
+          (field) => field && fold(field).includes(search)
+        )
+      )
+    : tab === 'custom'
       ? custom
       : tab === 'favourites'
-        ? all.filter((d) => favorites.includes(d.id))
+        ? favouriteList
         : suggested.filter((d) => d.category === tab);
+
+  const listTitle =
+    tab === 'custom' ? t('myDhikr') : tab === 'favourites' ? t('favourites') : categoryLabel(tab);
 
   return (
     <ThemedView style={styles.container}>
       <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
-        <ScrollView contentContainerStyle={styles.content}>
+        <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
           <ThemedText type="subtitle" style={styles.padded}>
             {t('tabDhikr')}
           </ThemedText>
 
-          <Pressable
-            onPress={() => handleSelect(FREE_COUNTER)}
-            accessibilityRole="button"
-            accessibilityState={{ selected: selectedId === FREE_COUNTER.id }}
-            style={({ pressed }) => [styles.padded, pressed && styles.pressed]}>
-            <ThemedView
-              type={selectedId === FREE_COUNTER.id ? 'backgroundSelected' : 'backgroundElement'}
-              style={[styles.row, selectedId === FREE_COUNTER.id && { borderColor: theme.accent }]}>
-              <ThemedText type="smallBold">{t('freeCounter')}</ThemedText>
-              <ThemedText type="small" themeColor="textSecondary">
-                {t('freeCounterHint')}
+          <View style={styles.padded}>
+            <View
+              style={[
+                styles.search,
+                { backgroundColor: theme.backgroundElement, borderColor: theme.border },
+              ]}>
+              <ThemedText themeColor="textSecondary" style={styles.searchIcon}>
+                ⌕
               </ThemedText>
-            </ThemedView>
-          </Pressable>
-
-          <ThemedText type="smallBold" themeColor="textSecondary" style={styles.sectionLabel}>
-            {t('flows')}
-          </ThemedText>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.carousel}>
-            {flows.map((flow) => {
-              const active = activeFlow?.flow.id === flow.id;
-              return (
-                <View
-                  key={flow.id}
-                  style={[
-                    styles.flowCard,
-                    { backgroundColor: theme.accent, borderColor: active ? theme.text : theme.accent },
-                  ]}>
-                  <Pressable
-                    onPress={() => handleStartFlow(flow)}
-                    accessibilityRole="button"
-                    style={({ pressed }) => [styles.flowCardMain, pressed && styles.pressed]}>
-                    <ThemedText type="smallBold" style={{ color: theme.onAccent }} numberOfLines={2}>
-                      {flowTitle(flow)}
-                    </ThemedText>
-                    <ThemedText type="small" style={{ color: theme.onAccent }}>
-                      {t('stepsCount', { n: flow.steps.length })}
-                    </ThemedText>
-                  </Pressable>
-                  {flow.builtIn ? null : (
-                    <View style={styles.rowActions}>
-                      <Pressable
-                        onPress={() => openFlowForm(flow)}
-                        accessibilityRole="button"
-                        hitSlop={Spacing.two}>
-                        <ThemedText type="smallBold" style={[styles.link, { color: theme.onAccent }]}>
-                          {t('edit')}
-                        </ThemedText>
-                      </Pressable>
-                      <Pressable
-                        onPress={() => handleDeleteFlow(flow)}
-                        accessibilityRole="button"
-                        hitSlop={Spacing.two}>
-                        <ThemedText type="smallBold" style={[styles.link, { color: theme.onAccent }]}>
-                          {t('delete')}
-                        </ThemedText>
-                      </Pressable>
-                    </View>
-                  )}
-                </View>
-              );
-            })}
-            <Pressable
-              onPress={() => openFlowForm()}
-              accessibilityRole="button"
-              style={({ pressed }) => pressed && styles.pressed}>
-              <ThemedView
-                type="backgroundElement"
-                style={[styles.flowCard, styles.newFlowCard, { borderColor: theme.backgroundSelected }]}>
-                <ThemedText type="smallBold" style={{ color: theme.accent }}>
-                  + {t('newFlow')}
-                </ThemedText>
-              </ThemedView>
-            </Pressable>
-          </ScrollView>
-
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.carousel}>
-            <Chip
-              label={`★ ${t('favourites')}`}
-              selected={tab === 'favourites'}
-              onPress={() => setTab('favourites')}
-            />
-            {/* Next to favourites, so adding your own dhikr is seen without scrolling the row. */}
-            <Chip label={t('myDhikr')} selected={tab === 'custom'} onPress={() => setTab('custom')} />
-            {CATEGORY_IDS.map((category) => (
-              <Chip
-                key={category}
-                label={categoryLabel(category)}
-                selected={tab === category}
-                onPress={() => setTab(category)}
+              <TextInput
+                value={query}
+                onChangeText={setQuery}
+                placeholder={t('searchDhikr')}
+                placeholderTextColor={theme.textSecondary}
+                autoCorrect={false}
+                returnKeyType="search"
+                style={[styles.searchInput, { color: theme.text }]}
               />
-            ))}
-          </ScrollView>
+              {searching ? (
+                <Pressable
+                  onPress={() => setQuery('')}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('clearSearch')}
+                  hitSlop={Spacing.two}>
+                  <ThemedText themeColor="textSecondary" style={styles.searchIcon}>
+                    ✕
+                  </ThemedText>
+                </Pressable>
+              ) : null}
+            </View>
+          </View>
+
+          {searching ? null : (
+            <>
+              <View style={[styles.padded, styles.tiles]}>
+                <Tile
+                  symbol="∞"
+                  label={t('freeCounter')}
+                  selected={selectedId === FREE_COUNTER.id}
+                  onPress={() => handleSelect(FREE_COUNTER)}
+                />
+                <Tile
+                  symbol="★"
+                  label={t('favourites')}
+                  count={favouriteList.length}
+                  selected={tab === 'favourites'}
+                  onPress={() => openTab('favourites')}
+                />
+                <Tile
+                  symbol={'✎︎'}
+                  label={t('myDhikr')}
+                  count={custom.length}
+                  selected={tab === 'custom'}
+                  onPress={() => openTab('custom')}
+                />
+              </View>
+
+              <ThemedText type="smallBold" themeColor="textSecondary" style={styles.sectionLabel}>
+                {t('flows')}
+              </ThemedText>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.carousel}>
+                {flows.map((flow) => {
+                  const active = activeFlow?.flow.id === flow.id;
+                  return (
+                    <View
+                      key={flow.id}
+                      style={[
+                        styles.flowCard,
+                        {
+                          backgroundColor: theme.backgroundElement,
+                          borderColor: active ? theme.accent : theme.border,
+                        },
+                      ]}>
+                      <Pressable
+                        onPress={() => handleStartFlow(flow)}
+                        accessibilityRole="button"
+                        accessibilityState={{ selected: active }}
+                        style={({ pressed }) => [styles.flowCardMain, pressed && styles.pressed]}>
+                        <ThemedText style={[styles.flowSymbol, { color: theme.accent }]}>
+                          {FLOW_SYMBOLS[flow.id] ?? CUSTOM_FLOW_SYMBOL}
+                        </ThemedText>
+                        <ThemedText type="smallBold" numberOfLines={2}>
+                          {flowTitle(flow)}
+                        </ThemedText>
+                        {active && activeFlow ? (
+                          <ThemedText type="small" style={{ color: theme.accent }}>
+                            ▶ {formatNumber(activeFlow.step)} / {formatNumber(activeFlow.steps)}
+                          </ThemedText>
+                        ) : (
+                          <ThemedText type="small" themeColor="textSecondary">
+                            {t('stepsCount', { n: flow.steps.length })}
+                          </ThemedText>
+                        )}
+                      </Pressable>
+                      {flow.builtIn ? null : (
+                        <View style={styles.rowActions}>
+                          <Pressable
+                            onPress={() => openFlowForm(flow)}
+                            accessibilityRole="button"
+                            hitSlop={Spacing.two}>
+                            <ThemedText type="smallBold" style={{ color: theme.accent }}>
+                              {t('edit')}
+                            </ThemedText>
+                          </Pressable>
+                          <Pressable
+                            onPress={() => handleDeleteFlow(flow)}
+                            accessibilityRole="button"
+                            hitSlop={Spacing.two}>
+                            <ThemedText type="smallBold" style={{ color: theme.danger }}>
+                              {t('delete')}
+                            </ThemedText>
+                          </Pressable>
+                        </View>
+                      )}
+                    </View>
+                  );
+                })}
+                <Pressable
+                  onPress={() => openFlowForm()}
+                  accessibilityRole="button"
+                  style={({ pressed }) => pressed && styles.pressed}>
+                  <View style={[styles.flowCard, styles.newFlowCard, { borderColor: theme.border }]}>
+                    <ThemedText type="smallBold" style={{ color: theme.accent }}>
+                      + {t('newFlow')}
+                    </ThemedText>
+                  </View>
+                </Pressable>
+              </ScrollView>
+
+              {/* Every category is visible at once, wrapping onto a few lines. */}
+              <View style={[styles.padded, styles.chips]}>
+                {CATEGORY_IDS.map((category) => (
+                  <Chip
+                    key={category}
+                    label={categoryLabel(category)}
+                    selected={tab === category}
+                    onPress={() => openTab(category)}
+                  />
+                ))}
+              </View>
+            </>
+          )}
 
           <View style={[styles.padded, styles.list]}>
-            {tab === 'custom' && custom.length === 0 ? (
+            {searching ? null : (
+              <ThemedText type="smallBold" themeColor="textSecondary" style={styles.listLabel}>
+                {listTitle} · {formatNumber(list.length)}
+              </ThemedText>
+            )}
+            {searching && list.length === 0 ? (
+              <ThemedText themeColor="textSecondary">{t('noResults')}</ThemedText>
+            ) : null}
+            {!searching && tab === 'custom' && custom.length === 0 ? (
               <ThemedText themeColor="textSecondary">{t('noCustom')}</ThemedText>
             ) : null}
-            {tab === 'favourites' && list.length === 0 ? (
+            {!searching && tab === 'favourites' && list.length === 0 ? (
               <ThemedText themeColor="textSecondary">{t('noFavourites')}</ThemedText>
             ) : null}
             {list.map((dhikr) => (
@@ -240,10 +332,9 @@ export default function DhikrScreen() {
               />
             ))}
 
-            {tab === 'custom' ? (
+            {!searching && tab === 'custom' ? (
               <Button label={t('addCustom')} onPress={() => openDhikrForm()} />
             ) : null}
-
           </View>
         </ScrollView>
         <AdBanner />
@@ -262,6 +353,38 @@ export default function DhikrScreen() {
         onClose={() => setFlowFormVisible(false)}
       />
     </ThemedView>
+  );
+}
+
+type TileProps = {
+  symbol: string;
+  label: string;
+  count?: number;
+  selected: boolean;
+  onPress: () => void;
+};
+
+/** One of the three shortcuts at the top: free counter, favourites, your own dhikr. */
+function Tile({ symbol, label, count, selected, onPress }: TileProps) {
+  const theme = useTheme();
+  const { formatNumber } = useI18n();
+
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityState={{ selected }}
+      style={({ pressed }) => [styles.tilePress, pressed && styles.pressed]}>
+      <ThemedView
+        type="backgroundElement"
+        style={[styles.tile, { borderColor: selected ? theme.accent : 'transparent' }]}>
+        <ThemedText style={[styles.tileSymbol, { color: theme.accent }]}>{symbol}</ThemedText>
+        <ThemedText type="small" style={styles.tileLabel} numberOfLines={2}>
+          {label}
+          {count !== undefined ? ` · ${formatNumber(count)}` : ''}
+        </ThemedText>
+      </ThemedView>
+    </Pressable>
   );
 }
 
@@ -285,70 +408,87 @@ function DhikrRow({
   onDelete,
 }: DhikrRowProps) {
   const theme = useTheme();
-  const { t, meaning } = useI18n();
+  const { t, meaning, formatNumber } = useI18n();
   const stacked = (dhikr.arabic?.length ?? 0) > LONG_ARABIC;
   // Custom dhikr have no translation, so their own text is previewed in its place.
   const subtitle = meaning(dhikr.id) ?? (dhikr.builtIn ? undefined : dhikr.transliteration);
+
+  const star = (
+    <Pressable
+      onPress={onToggleFavourite}
+      accessibilityRole="button"
+      accessibilityLabel={t(favourite ? 'removeFavourite' : 'addFavourite')}
+      accessibilityState={{ selected: favourite }}
+      hitSlop={Spacing.three}>
+      <ThemedText style={[styles.star, { color: favourite ? theme.accent : theme.textSecondary }]}>
+        {favourite ? '★' : '☆'}
+      </ThemedText>
+    </Pressable>
+  );
 
   return (
     <ThemedView
       type={selected ? 'backgroundSelected' : 'backgroundElement'}
       style={[styles.row, selected && { borderColor: theme.accent }]}>
-      <Pressable
-        onPress={onPress}
-        accessibilityRole="button"
-        accessibilityState={{ selected }}
-        style={({ pressed }) => [stacked ? styles.rowStacked : styles.rowMain, pressed && styles.pressed]}>
-        {stacked ? (
-          <ThemedText style={styles.rowArabicStacked} numberOfLines={ARABIC_PREVIEW_LINES}>
-            {dhikr.arabic}
-          </ThemedText>
-        ) : null}
-        <View style={styles.rowText}>
-          <ThemedText type="smallBold">{dhikr.title}</ThemedText>
-          {subtitle ? (
-            <ThemedText type="small" themeColor="textSecondary" numberOfLines={ARABIC_PREVIEW_LINES}>
-              {subtitle}
+      <View style={styles.rowTop}>
+        <Pressable
+          onPress={onPress}
+          accessibilityRole="button"
+          accessibilityState={{ selected }}
+          style={({ pressed }) => [
+            stacked ? styles.rowStacked : styles.rowMain,
+            pressed && styles.pressed,
+          ]}>
+          {stacked ? (
+            <ThemedText style={styles.rowArabicStacked} numberOfLines={ARABIC_PREVIEW_LINES}>
+              {dhikr.arabic}
             </ThemedText>
           ) : null}
-          <ThemedText type="small" themeColor="textSecondary">
-            {t('target', { n: dhikr.target })}
-            {dhikr.source ? ` · ${dhikr.source}` : ''}
-          </ThemedText>
-        </View>
-        {dhikr.arabic && !stacked ? (
-          <ThemedText style={styles.rowArabic} numberOfLines={2}>
-            {dhikr.arabic}
-          </ThemedText>
-        ) : null}
-      </Pressable>
-
-      <View style={styles.rowActions}>
-        <Pressable
-          onPress={onToggleFavourite}
-          accessibilityRole="button"
-          accessibilityLabel={t(favourite ? 'removeFavourite' : 'addFavourite')}
-          accessibilityState={{ selected: favourite }}
-          hitSlop={Spacing.two}>
-          <ThemedText style={[styles.star, { color: favourite ? theme.accent : theme.textSecondary }]}>
-            {favourite ? '★' : '☆'}
-          </ThemedText>
+          <View style={styles.rowText}>
+            <View style={styles.titleLine}>
+              <ThemedText type="smallBold" style={styles.title}>
+                {dhikr.title}
+              </ThemedText>
+              {selected ? (
+                <View style={[styles.badge, { backgroundColor: theme.accent }]}>
+                  <ThemedText type="small" style={[styles.badgeText, { color: theme.onAccent }]}>
+                    {t('counting')}
+                  </ThemedText>
+                </View>
+              ) : null}
+            </View>
+            {subtitle ? (
+              <ThemedText type="small" themeColor="textSecondary" numberOfLines={ARABIC_PREVIEW_LINES}>
+                {subtitle}
+              </ThemedText>
+            ) : null}
+            <ThemedText type="small" themeColor="textSecondary">
+              {formatNumber(dhikr.target)}×{dhikr.source ? ` · ${dhikr.source}` : ''}
+            </ThemedText>
+          </View>
+          {dhikr.arabic && !stacked ? (
+            <ThemedText style={styles.rowArabic} numberOfLines={2}>
+              {dhikr.arabic}
+            </ThemedText>
+          ) : null}
         </Pressable>
-        {onEdit && onDelete ? (
-          <>
-            <Pressable onPress={onEdit} accessibilityRole="button" hitSlop={Spacing.two}>
-              <ThemedText type="smallBold" style={{ color: theme.accent }}>
-                {t('edit')}
-              </ThemedText>
-            </Pressable>
-            <Pressable onPress={onDelete} accessibilityRole="button" hitSlop={Spacing.two}>
-              <ThemedText type="smallBold" style={{ color: theme.danger }}>
-                {t('delete')}
-              </ThemedText>
-            </Pressable>
-          </>
-        ) : null}
+        {star}
       </View>
+
+      {onEdit && onDelete ? (
+        <View style={styles.rowActions}>
+          <Pressable onPress={onEdit} accessibilityRole="button" hitSlop={Spacing.two}>
+            <ThemedText type="smallBold" style={{ color: theme.accent }}>
+              {t('edit')}
+            </ThemedText>
+          </Pressable>
+          <Pressable onPress={onDelete} accessibilityRole="button" hitSlop={Spacing.two}>
+            <ThemedText type="smallBold" style={{ color: theme.danger }}>
+              {t('delete')}
+            </ThemedText>
+          </Pressable>
+        </View>
+      ) : null}
     </ThemedView>
   );
 }
@@ -371,6 +511,48 @@ const styles = StyleSheet.create({
   padded: {
     paddingHorizontal: Spacing.four,
   },
+  search: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.two,
+    borderWidth: 1,
+    borderRadius: Spacing.three,
+    paddingHorizontal: Spacing.three,
+    minHeight: 44,
+  },
+  searchIcon: {
+    fontSize: 18,
+    lineHeight: 24,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
+    paddingVertical: Spacing.two,
+  },
+  tiles: {
+    flexDirection: 'row',
+    gap: Spacing.two,
+  },
+  tilePress: {
+    flex: 1,
+  },
+  tile: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.half,
+    borderRadius: Spacing.three,
+    borderWidth: 2,
+    paddingVertical: Spacing.three,
+    paddingHorizontal: Spacing.one,
+  },
+  tileSymbol: {
+    fontSize: 20,
+    lineHeight: 26,
+  },
+  tileLabel: {
+    textAlign: 'center',
+  },
   sectionLabel: {
     textTransform: 'uppercase',
     paddingHorizontal: Spacing.four,
@@ -381,10 +563,10 @@ const styles = StyleSheet.create({
     gap: Spacing.two,
   },
   flowCard: {
-    width: 168,
-    minHeight: 88,
+    width: 150,
+    minHeight: 96,
     borderRadius: Spacing.three,
-    borderWidth: 2,
+    borderWidth: 1,
     padding: Spacing.three,
     gap: Spacing.half,
   },
@@ -392,15 +574,26 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     gap: Spacing.half,
   },
+  flowSymbol: {
+    fontSize: 18,
+    lineHeight: 24,
+  },
   newFlowCard: {
+    width: 110,
     alignItems: 'center',
     justifyContent: 'center',
+    borderStyle: 'dashed',
   },
-  link: {
-    textDecorationLine: 'underline',
+  chips: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.two,
   },
   list: {
     gap: Spacing.two,
+  },
+  listLabel: {
+    textTransform: 'uppercase',
   },
   row: {
     borderRadius: Spacing.three,
@@ -409,12 +602,19 @@ const styles = StyleSheet.create({
     padding: Spacing.three,
     gap: Spacing.two,
   },
+  rowTop: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: Spacing.two,
+  },
   rowMain: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.three,
   },
   rowStacked: {
+    flex: 1,
     gap: Spacing.two,
   },
   rowText: {
@@ -422,14 +622,31 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     gap: Spacing.half,
   },
+  titleLine: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: Spacing.two,
+  },
+  title: {
+    flexShrink: 1,
+  },
+  badge: {
+    borderRadius: Spacing.two,
+    paddingHorizontal: Spacing.two,
+  },
+  badgeText: {
+    fontSize: 11,
+    lineHeight: 18,
+  },
   rowArabic: {
     fontFamily: AppFonts.arabic,
     fontSize: 22,
     lineHeight: 38,
     textAlign: 'right',
     writingDirection: 'rtl',
-    flexShrink: 1,
-    maxWidth: '50%',
+    flexShrink: 0,
+    maxWidth: '58%',
   },
   rowArabicStacked: {
     fontFamily: AppFonts.arabic,
