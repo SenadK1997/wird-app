@@ -77,6 +77,7 @@ type Action =
   | { type: 'hydrate'; state: State }
   | { type: 'increment'; day: string }
   | { type: 'undo'; day: string }
+  | { type: 'addCount'; day: string; amount: number; toCounter: boolean }
   | { type: 'reset' }
   | { type: 'select'; id: string }
   | { type: 'addCustom'; dhikr: Dhikr }
@@ -211,6 +212,18 @@ function reducer(state: State, action: Action): State {
         history: addToDay(state.history, action.day, id, -1),
       };
     }
+    case 'addCount': {
+      // Dhikr counted elsewhere (a tasbih, by heart). Not during a flow, which moves step by step.
+      if (state.sequence || action.amount <= 0) return state;
+      const id = state.selectedId;
+      return {
+        ...state,
+        counts: action.toCounter
+          ? { ...state.counts, [id]: (state.counts[id] ?? 0) + action.amount }
+          : state.counts,
+        history: addToDay(state.history, action.day, id, action.amount),
+      };
+    }
     case 'reset':
       if (state.sequence) return { ...state, sequence: { ...state.sequence, index: 0, count: 0 } };
       return { ...state, counts: { ...state.counts, [state.selectedId]: 0 } };
@@ -300,6 +313,11 @@ type Store = Settings & {
   findDhikr: (id: string) => Dhikr | undefined;
   increment: () => void;
   undo: () => void;
+  /**
+   * Adds dhikr counted elsewhere to the dhikr on the counter, for today or `daysAgo` days back.
+   * Today's also go onto the counter itself; earlier days only into the history.
+   */
+  addCount: (amount: number, daysAgo?: number) => void;
   reset: () => void;
   select: (id: string) => void;
   addCustom: (input: CustomDhikrInput) => void;
@@ -382,6 +400,11 @@ export function DhikrStoreProvider({ children }: { children: ReactNode }) {
     findDhikr,
     increment: () => dispatch({ type: 'increment', day: dayKey() }),
     undo: () => dispatch({ type: 'undo', day: dayKey() }),
+    addCount: (amount, daysAgo = 0) => {
+      const now = new Date();
+      const day = new Date(now.getFullYear(), now.getMonth(), now.getDate() - daysAgo);
+      dispatch({ type: 'addCount', day: dayKey(day), amount, toCounter: daysAgo === 0 });
+    },
     reset: () => dispatch({ type: 'reset' }),
     select: (id) => dispatch({ type: 'select', id }),
     addCustom: (input) =>

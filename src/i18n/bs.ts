@@ -92,6 +92,10 @@ export const bs: Translations = {
     count: 'Broj',
 
     today: 'Danas',
+    add: 'Dodaj',
+    yesterday: 'Jučer',
+    addCountTitle: 'Dodaj zikr',
+    addCountHint: 'Brojao si {title} na tespihu ili napamet? Upiši koliko puta, da se ubroji u tvoj cilj i historiju.',
     dayStreak: 'Dana zaredom',
     bestStreak: 'Najduži niz dana',
     allTime: 'Ukupno',

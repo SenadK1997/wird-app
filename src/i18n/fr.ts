@@ -92,6 +92,10 @@ export const fr: Translations = {
     count: 'Nombre',
 
     today: "Aujourd'hui",
+    add: 'Ajouter',
+    yesterday: 'Hier',
+    addCountTitle: 'Ajouter un dhikr',
+    addCountHint: 'Vous avez compté {title} sur un chapelet ou de mémoire ? Indiquez combien de fois pour l’ajouter à votre objectif et à votre historique.',
     dayStreak: 'Jours de suite',
     bestStreak: 'Meilleure série',
     allTime: 'Au total',

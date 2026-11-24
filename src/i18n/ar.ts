@@ -92,6 +92,10 @@ export const ar: Translations = {
     count: 'العدد',
 
     today: 'اليوم',
+    add: 'إضافة',
+    yesterday: 'أمس',
+    addCountTitle: 'إضافة ذكر',
+    addCountHint: 'عددتَ {title} على المسبحة أو في نفسك؟ أدخل عدد المرات ليُحسب في هدفك وسجلك.',
     dayStreak: 'أيام متتالية',
     bestStreak: 'أطول سلسلة',
     allTime: 'الإجمالي',

@@ -92,6 +92,10 @@ export const tr: Translations = {
     count: 'Sayı',
 
     today: 'Bugün',
+    add: 'Ekle',
+    yesterday: 'Dün',
+    addCountTitle: 'Zikir ekle',
+    addCountHint: 'Tesbihle veya içinizden {title} saydınız mı? Hedefinize ve geçmişinize eklenmesi için kaç kez olduğunu girin.',
     dayStreak: 'Gün serisi',
     bestStreak: 'En uzun seri',
     allTime: 'Toplam',

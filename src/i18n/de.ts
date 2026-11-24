@@ -92,6 +92,10 @@ export const de: Translations = {
     count: 'Anzahl',
 
     today: 'Heute',
+    add: 'Hinzufügen',
+    yesterday: 'Gestern',
+    addCountTitle: 'Dhikr hinzufügen',
+    addCountHint: 'Hast du {title} mit einer Tasbih oder im Kopf gezählt? Gib ein, wie oft – dann zählt es für dein Tagesziel und deinen Verlauf.',
     dayStreak: 'Tage in Folge',
     bestStreak: 'Beste Serie',
     allTime: 'Insgesamt',

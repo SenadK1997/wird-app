@@ -1,10 +1,11 @@
 import * as Haptics from 'expo-haptics';
 import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
 import { useFocusEffect } from 'expo-router';
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { AddCountDialog } from '@/components/add-count-dialog';
 import { useConfirm } from '@/components/confirm-dialog';
 import { ProgressBar } from '@/components/progress-bar';
 import { ProgressRing } from '@/components/progress-ring';
@@ -44,9 +45,11 @@ export default function CounterScreen() {
     display,
     increment,
     undo,
+    addCount,
     reset,
     exitFlow,
   } = useDhikrStore();
+  const [addVisible, setAddVisible] = useState(false);
   const { width, height } = useWindowDimensions();
   const ringSize = Math.max(180, Math.min(width - Spacing.six * 2, height * 0.34, 320));
 
@@ -216,9 +219,26 @@ export default function CounterScreen() {
             onPress={handleReset}
             disabled={!canUndo}
           />
-          {activeFlow ? <ActionButton label={t('exit')} onPress={exitFlow} /> : null}
+          {activeFlow ? (
+            <ActionButton label={t('exit')} onPress={exitFlow} />
+          ) : (
+            // Dhikr counted on a tasbih or by heart. A flow moves step by step, so not there.
+            <ActionButton label={`+ ${t('add')}`} onPress={() => setAddVisible(true)} />
+          )}
         </View>
       </SafeAreaView>
+
+      <AddCountDialog
+        visible={addVisible}
+        title={title}
+        onAdd={(amount, daysAgo) => {
+          addCount(amount, daysAgo);
+          if (hapticsEnabled) {
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+          }
+        }}
+        onClose={() => setAddVisible(false)}
+      />
     </ThemedView>
   );
 }

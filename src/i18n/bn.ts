@@ -92,6 +92,10 @@ export const bn: Translations = {
     count: 'সংখ্যা',
 
     today: 'আজ',
+    add: 'যোগ করুন',
+    yesterday: 'গতকাল',
+    addCountTitle: 'জিকির যোগ করুন',
+    addCountHint: 'তাসবিহ বা মনে মনে {title} গুনেছেন? কতবার করেছেন লিখুন, যাতে তা আপনার লক্ষ্য ও ইতিহাসে যোগ হয়।',
     dayStreak: 'টানা দিন',
     bestStreak: 'সর্বোচ্চ টানা দিন',
     allTime: 'সর্বমোট',

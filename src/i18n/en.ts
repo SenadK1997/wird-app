@@ -91,6 +91,10 @@ export const en = {
     count: 'Count',
 
     today: 'Today',
+    add: 'Add',
+    yesterday: 'Yesterday',
+    addCountTitle: 'Add dhikr',
+    addCountHint: 'Counted {title} on a tasbih or by heart? Enter how many times so it counts toward your goal and history.',
     dayStreak: 'Day streak',
     bestStreak: 'Best streak',
     allTime: 'All time',

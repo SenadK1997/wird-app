@@ -92,6 +92,10 @@ export const id: Translations = {
     count: 'Jumlah',
 
     today: 'Hari ini',
+    add: 'Tambah',
+    yesterday: 'Kemarin',
+    addCountTitle: 'Tambah dzikir',
+    addCountHint: 'Menghitung {title} dengan tasbih atau dalam hati? Masukkan berapa kali agar tercatat di target dan riwayat Anda.',
     dayStreak: 'Hari beruntun',
     bestStreak: 'Rekor beruntun',
     allTime: 'Sepanjang waktu',

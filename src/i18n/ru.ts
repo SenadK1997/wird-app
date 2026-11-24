@@ -92,6 +92,10 @@ export const ru: Translations = {
     count: 'Количество',
 
     today: 'Сегодня',
+    add: 'Добавить',
+    yesterday: 'Вчера',
+    addCountTitle: 'Добавить зикр',
+    addCountHint: 'Считали {title} на чётках или про себя? Введите, сколько раз, чтобы это вошло в вашу цель и историю.',
     dayStreak: 'Дней подряд',
     bestStreak: 'Лучшая серия',
     allTime: 'За всё время',

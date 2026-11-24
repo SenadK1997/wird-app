@@ -92,6 +92,10 @@ export const ur: Translations = {
     count: 'تعداد',
 
     today: 'آج',
+    add: 'شامل کریں',
+    yesterday: 'گزشتہ کل',
+    addCountTitle: 'ذکر شامل کریں',
+    addCountHint: 'کیا آپ نے {title} تسبیح پر یا دل میں گنا؟ کتنی بار کیا، درج کریں تاکہ یہ آپ کے ہدف اور ریکارڈ میں شامل ہو۔',
     dayStreak: 'مسلسل دن',
     bestStreak: 'سب سے زیادہ مسلسل دن',
     allTime: 'مجموعی',
