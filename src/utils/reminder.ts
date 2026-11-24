@@ -2,6 +2,7 @@ import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 
 import type { Reminder } from '@/store/dhikr-store';
+import { localDayNumber, pickNudge } from '@/utils/nudge-rotation';
 
 /** Scheduled notifications only exist in the phone app; reminder.web.ts is the web stand-in. */
 export const remindersSupported = true;
@@ -99,15 +100,12 @@ async function scheduleAll(cfg: NotificationConfig): Promise<boolean> {
 
   if (wantNudges) {
     const hours = SLOT_HOURS[Math.min(3, Math.max(1, cfg.nudgesPerDay))] ?? SLOT_HOURS[3];
-    const salawat = cfg.nudges.filter((n) => n.salawat);
     const now = new Date();
-    // Rotate the starting point each day, so the first nudge is not always the same.
-    let idx = Math.floor(now.getTime() / 86_400_000) % cfg.nudges.length;
-    let salawatIdx = 0;
 
     for (let d = 0; d < NUDGE_DAYS; d++) {
       const day = new Date(now);
       day.setDate(now.getDate() + d);
+      const dayNumber = localDayNumber(day);
       const isFriday = day.getDay() === 5;
 
       for (let s = 0; s < hours.length; s++) {
@@ -116,11 +114,7 @@ async function scheduleAll(cfg: NotificationConfig): Promise<boolean> {
         // Skip a slot that is already past (or about to pass) today.
         if (when.getTime() <= now.getTime() + 60_000) continue;
 
-        // On Fridays the last nudge is a salawat, as the sunnah encourages.
-        const item =
-          isFriday && s === hours.length - 1 && salawat.length > 0
-            ? salawat[salawatIdx++ % salawat.length]
-            : cfg.nudges[idx++ % cfg.nudges.length];
+        const item = pickNudge(cfg.nudges, dayNumber, s, hours.length, isFriday);
 
         await Notifications.scheduleNotificationAsync({
           content: {
