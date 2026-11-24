@@ -39,7 +39,7 @@
       },
       "predictiveBackGestureEnabled": false,
       "package": "com.kenyro.wird",
-      "permissions": [
+      "blockedPermissions": [
         "android.permission.RECORD_AUDIO",
         "android.permission.MODIFY_AUDIO_SETTINGS",
         "android.permission.FOREGROUND_SERVICE",
@@ -62,13 +62,19 @@
       ],
       "expo-notifications",
       "expo-localization",
-      "expo-audio",
+      [
+        "expo-audio",
+        {
+          "microphonePermission": false
+        }
+      ],
       "expo-sharing",
       "expo-asset",
       "expo-font",
       [
         "react-native-google-mobile-ads",
         {
+          "androidAppId": "ca-app-pub-9103637559448321~8430833281",
           "iosAppId": "ca-app-pub-9103637559448321~3838918984",
           "skAdNetworkItems": [
             "cstr6suwn9.skadnetwork"
@@ -93,5 +99,9 @@
       }
     },
     "owner": "senadk97"
+  },
+  "react-native-google-mobile-ads": {
+    "android_app_id": "ca-app-pub-9103637559448321~8430833281",
+    "ios_app_id": "ca-app-pub-9103637559448321~3838918984"
   }
 }
