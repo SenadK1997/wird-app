@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Platform, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useAdsReady } from '@/ads/ads-provider';
@@ -21,8 +21,10 @@ export function AdBanner() {
     <View
       style={[
         styles.container,
-        // The space under the banner keeps it clear of the tab bar and the home indicator.
-        state === 'shown' && { paddingBottom: BottomTabInset + insets.bottom },
+        // On iOS the screen runs on under the tab bar and the home indicator, so the banner needs
+        // space under it to stay clear of them. On Android the screen already ends above the tab bar.
+        state === 'shown' &&
+          Platform.OS === 'ios' && { paddingBottom: BottomTabInset + insets.bottom },
       ]}>
       <BannerView onLoaded={() => setState('shown')} onFailed={() => setState('failed')} />
     </View>

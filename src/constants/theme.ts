@@ -110,7 +110,11 @@ export const Spacing = {
   six: 64,
 } as const;
 
-export const BottomTabInset = Platform.select({ ios: 50, android: 80 }) ?? 0;
+/**
+ * Space to leave at the bottom of a screen for the tab bar. Only iOS needs it: there the screen runs
+ * on under the tab bar. On Android the native tabs already end each screen above the tab bar.
+ */
+export const BottomTabInset = Platform.select({ ios: 50 }) ?? 0;
 export const MaxContentWidth = 800;
 /** Height of the floating tab bar that sits above the content on web. */
 export const TopTabInset = Platform.select({ web: 72 }) ?? 0;
