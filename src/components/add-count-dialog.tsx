@@ -1,22 +1,29 @@
 import { useState } from 'react';
-import { Modal, Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { Modal, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 
 import { Button } from '@/components/button';
 import { Chip } from '@/components/chip';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
-import { MAX_TARGET } from '@/data/dhikr';
+import { MAX_TARGET, type Dhikr } from '@/data/dhikr';
 import { useTheme } from '@/hooks/use-theme';
 import { useI18n } from '@/i18n';
+import { dayKeyDaysAgo } from '@/utils/date';
 
 const PRESETS = [33, 100, 1000];
 
+export type AddCountResult = { amount: number; day: string; dhikrId?: string };
+
 type AddCountDialogProps = {
   visible: boolean;
-  /** Name of the dhikr the count is added to. */
-  title: string;
-  onAdd: (amount: number, daysAgo: number) => void;
+  /** Name of the dhikr the count is added to. Leave out to let the user pick from `choices`. */
+  title?: string;
+  /** Dhikr to choose from, most likely first. Used when `title` is not given. */
+  choices?: Dhikr[];
+  /** A fixed day (`YYYY-MM-DD`) and how to show it. Without it, the user picks today or yesterday. */
+  day?: { key: string; label: string };
+  onAdd: (result: AddCountResult) => void;
   onClose: () => void;
 };
 
@@ -24,59 +31,98 @@ type AddCountDialogProps = {
  * Adds dhikr counted somewhere else — on a tasbih, on fingers, by heart — so it still counts
  * toward the daily goal, the streak and the history.
  */
-export function AddCountDialog({ visible, title, onAdd, onClose }: AddCountDialogProps) {
+export function AddCountDialog({ visible, title, choices, day, onAdd, onClose }: AddCountDialogProps) {
   const theme = useTheme();
-  const { t, formatNumber } = useI18n();
+  const { t, formatNumber, dhikrTitle } = useI18n();
   const [text, setText] = useState('');
   const [daysAgo, setDaysAgo] = useState(0);
-  const [showError, setShowError] = useState(false);
+  const [picked, setPicked] = useState<string | null>(null);
+  const [error, setError] = useState<'amount' | 'dhikr' | null>(null);
 
   const amount = Number(text);
-  const valid = /^\d+$/.test(text) && amount >= 1 && amount <= MAX_TARGET;
+  const validAmount = /^\d+$/.test(text) && amount >= 1 && amount <= MAX_TARGET;
+  const picking = title === undefined;
+  const pickedDhikr = picking ? choices?.find((d) => d.id === picked) : undefined;
 
   const close = () => {
     setText('');
     setDaysAgo(0);
-    setShowError(false);
+    setPicked(null);
+    setError(null);
     onClose();
   };
 
   const handleAdd = () => {
-    if (!valid) {
-      setShowError(true);
-      return;
-    }
-    onAdd(amount, daysAgo);
+    if (picking && !pickedDhikr) return setError('dhikr');
+    if (!validAmount) return setError('amount');
+    onAdd({ amount, day: day?.key ?? dayKeyDaysAgo(daysAgo), dhikrId: pickedDhikr?.id });
     close();
   };
+
+  const name = picking ? (pickedDhikr ? dhikrTitle(pickedDhikr) : '…') : title;
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={close}>
       <Pressable style={styles.backdrop} onPress={close} accessibilityLabel={t('cancel')}>
         {/* Swallows presses so tapping the dialog itself does not dismiss it. */}
-        <Pressable onPress={() => {}}>
+        <Pressable onPress={() => {}} style={styles.dialogPress}>
           <ThemedView style={styles.dialog}>
             <ThemedText type="smallBold" style={styles.heading}>
               {t('addCountTitle')}
+              {day ? ` · ${day.label}` : ''}
             </ThemedText>
-            <ThemedText themeColor="textSecondary">{t('addCountHint', { title })}</ThemedText>
+
+            {picking ? (
+              <>
+                <ThemedText type="small" themeColor="textSecondary">
+                  {t('pickDhikr')}
+                </ThemedText>
+                <ScrollView style={[styles.pickList, { borderColor: theme.border }]} nestedScrollEnabled>
+                  {(choices ?? []).map((d) => {
+                    const on = d.id === picked;
+                    return (
+                      <Pressable
+                        key={d.id}
+                        onPress={() => {
+                          setPicked(d.id);
+                          setError(null);
+                        }}
+                        accessibilityRole="button"
+                        accessibilityState={{ selected: on }}
+                        style={[styles.pickRow, on && { backgroundColor: theme.accent }]}>
+                        <ThemedText type="small" style={on && { color: theme.onAccent }} numberOfLines={1}>
+                          {dhikrTitle(d)}
+                        </ThemedText>
+                      </Pressable>
+                    );
+                  })}
+                </ScrollView>
+                {error === 'dhikr' ? (
+                  <ThemedText type="small" style={{ color: theme.danger }}>
+                    {t('pickDhikr')}
+                  </ThemedText>
+                ) : null}
+              </>
+            ) : (
+              <ThemedText themeColor="textSecondary">{t('addCountHint', { title: name ?? '' })}</ThemedText>
+            )}
 
             <TextInput
               accessibilityLabel={t('count')}
               value={text}
               onChangeText={(value) => {
                 setText(value.replace(/\D/g, ''));
-                setShowError(false);
+                setError(null);
               }}
               placeholder="0"
               placeholderTextColor={theme.textSecondary}
               keyboardType="number-pad"
               maxLength={6}
-              autoFocus
+              autoFocus={!picking}
               onSubmitEditing={handleAdd}
               style={[styles.input, { color: theme.text, backgroundColor: theme.background }]}
             />
-            {showError ? (
+            {error === 'amount' ? (
               <ThemedText type="small" style={{ color: theme.danger }}>
                 {t('errorGoal', { max: MAX_TARGET })}
               </ThemedText>
@@ -89,16 +135,18 @@ export function AddCountDialog({ visible, title, onAdd, onClose }: AddCountDialo
                   selected={text === String(value)}
                   onPress={() => {
                     setText(String(value));
-                    setShowError(false);
+                    setError(null);
                   }}
                 />
               ))}
             </View>
 
-            <View style={styles.chips}>
-              <Chip label={t('today')} selected={daysAgo === 0} onPress={() => setDaysAgo(0)} />
-              <Chip label={t('yesterday')} selected={daysAgo === 1} onPress={() => setDaysAgo(1)} />
-            </View>
+            {day ? null : (
+              <View style={styles.chips}>
+                <Chip label={t('today')} selected={daysAgo === 0} onPress={() => setDaysAgo(0)} />
+                <Chip label={t('yesterday')} selected={daysAgo === 1} onPress={() => setDaysAgo(1)} />
+              </View>
+            )}
 
             <View style={styles.buttons}>
               <Button label={t('cancel')} onPress={close} style={styles.button} />
@@ -119,9 +167,13 @@ const styles = StyleSheet.create({
     padding: Spacing.four,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
-  dialog: {
+  dialogPress: {
     width: '100%',
     maxWidth: 360,
+    alignItems: 'center',
+  },
+  dialog: {
+    width: '100%',
     minWidth: 280,
     borderRadius: Spacing.four,
     padding: Spacing.four,
@@ -130,6 +182,15 @@ const styles = StyleSheet.create({
   heading: {
     fontSize: 18,
     lineHeight: 26,
+  },
+  pickList: {
+    maxHeight: 190,
+    borderWidth: 1,
+    borderRadius: Spacing.three,
+  },
+  pickRow: {
+    paddingVertical: Spacing.two,
+    paddingHorizontal: Spacing.three,
   },
   input: {
     fontSize: 28,

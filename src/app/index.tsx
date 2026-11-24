@@ -231,8 +231,8 @@ export default function CounterScreen() {
       <AddCountDialog
         visible={addVisible}
         title={title}
-        onAdd={(amount, daysAgo) => {
-          addCount(amount, daysAgo);
+        onAdd={({ amount, day }) => {
+          addCount(amount, { day });
           if (hapticsEnabled) {
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
           }

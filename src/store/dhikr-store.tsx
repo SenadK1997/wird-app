@@ -71,13 +71,19 @@ type State = Settings & {
   themeVersion: number;
   /** Progress through a flow, or `null` when counting a single dhikr. */
   sequence: { flowId: string; index: number; count: number } | null;
+  /**
+   * The last count added by hand (from a tasbih, by heart), so it can be taken back in one go.
+   * Cleared by the next tap, reset or change of dhikr.
+   */
+  lastAdd: { id: string; day: string; amount: number; toCounter: boolean } | null;
 };
 
 type Action =
   | { type: 'hydrate'; state: State }
   | { type: 'increment'; day: string }
   | { type: 'undo'; day: string }
-  | { type: 'addCount'; day: string; amount: number; toCounter: boolean }
+  | { type: 'addCount'; id: string; day: string; amount: number; toCounter: boolean }
+  | { type: 'undoAdd' }
   | { type: 'reset' }
   | { type: 'select'; id: string }
   | { type: 'addCustom'; dhikr: Dhikr }
@@ -98,6 +104,7 @@ const initialState: State = {
   counts: {},
   history: {},
   sequence: null,
+  lastAdd: null,
   hapticsEnabled: true,
   soundEnabled: false,
   keepAwake: true,
@@ -152,7 +159,26 @@ function findFlow(state: State, id: string) {
   return [...BUILT_IN_FLOWS, ...state.customFlows].find((flow) => flow.id === id);
 }
 
-function reducer(state: State, action: Action): State {
+/** Takes back the last hand-added count in full. */
+function undoLastAdd(state: State): State {
+  const add = state.lastAdd;
+  if (!add) return state;
+  return {
+    ...state,
+    counts: add.toCounter
+      ? { ...state.counts, [add.id]: Math.max(0, (state.counts[add.id] ?? 0) - add.amount) }
+      : state.counts,
+    history: addToDay(state.history, add.day, add.id, -add.amount),
+    lastAdd: null,
+  };
+}
+
+function reducer(current: State, action: Action): State {
+  // Anything done on the counter after a hand-added count means Undo is about taps again.
+  const state =
+    current.lastAdd && ['increment', 'reset', 'select', 'startFlow'].includes(action.type)
+      ? { ...current, lastAdd: null }
+      : current;
   switch (action.type) {
     case 'hydrate':
       return action.state;
@@ -203,6 +229,8 @@ function reducer(state: State, action: Action): State {
           history: addToDay(state.history, action.day, previous.dhikrId, -1),
         };
       }
+      // Right after adding by hand, Undo takes the whole added count back.
+      if (state.lastAdd?.toCounter && state.lastAdd.id === state.selectedId) return undoLastAdd(state);
       const id = state.selectedId;
       const count = state.counts[id] ?? 0;
       if (count === 0) return state;
@@ -213,17 +241,18 @@ function reducer(state: State, action: Action): State {
       };
     }
     case 'addCount': {
-      // Dhikr counted elsewhere (a tasbih, by heart). Not during a flow, which moves step by step.
-      if (state.sequence || action.amount <= 0) return state;
-      const id = state.selectedId;
+      // Dhikr counted elsewhere (a tasbih, by heart), for any day and any dhikr.
+      if (action.amount <= 0) return state;
+      const { id, day, amount, toCounter } = action;
       return {
         ...state,
-        counts: action.toCounter
-          ? { ...state.counts, [id]: (state.counts[id] ?? 0) + action.amount }
-          : state.counts,
-        history: addToDay(state.history, action.day, id, action.amount),
+        counts: toCounter ? { ...state.counts, [id]: (state.counts[id] ?? 0) + amount } : state.counts,
+        history: addToDay(state.history, day, id, amount),
+        lastAdd: { id, day, amount, toCounter },
       };
     }
+    case 'undoAdd':
+      return undoLastAdd(state);
     case 'reset':
       if (state.sequence) return { ...state, sequence: { ...state.sequence, index: 0, count: 0 } };
       return { ...state, counts: { ...state.counts, [state.selectedId]: 0 } };
@@ -307,6 +336,8 @@ type Store = Settings & {
   target: number;
   activeFlow: { flow: Flow; step: number; steps: number; done: boolean } | null;
   history: History;
+  /** The last count added by hand, while it can still be taken back in one go. */
+  lastAdd: State['lastAdd'];
   todayTotal: number;
   /** Daily goal in taps, or `null` when the goal is switched off. */
   goal: number | null;
@@ -314,10 +345,12 @@ type Store = Settings & {
   increment: () => void;
   undo: () => void;
   /**
-   * Adds dhikr counted elsewhere to the dhikr on the counter, for today or `daysAgo` days back.
-   * Today's also go onto the counter itself; earlier days only into the history.
+   * Adds dhikr counted elsewhere (a tasbih, by heart). Defaults to today and the dhikr on the
+   * counter. When it is today's count of the dhikr on the counter, the counter goes up too.
    */
-  addCount: (amount: number, daysAgo?: number) => void;
+  addCount: (amount: number, options?: { day?: string; dhikrId?: string }) => void;
+  /** Takes back the last hand-added count in full (see `lastAdd`). */
+  undoAdd: () => void;
   reset: () => void;
   select: (id: string) => void;
   addCustom: (input: CustomDhikrInput) => void;
@@ -400,11 +433,15 @@ export function DhikrStoreProvider({ children }: { children: ReactNode }) {
     findDhikr,
     increment: () => dispatch({ type: 'increment', day: dayKey() }),
     undo: () => dispatch({ type: 'undo', day: dayKey() }),
-    addCount: (amount, daysAgo = 0) => {
-      const now = new Date();
-      const day = new Date(now.getFullYear(), now.getMonth(), now.getDate() - daysAgo);
-      dispatch({ type: 'addCount', day: dayKey(day), amount, toCounter: daysAgo === 0 });
+    addCount: (amount, options = {}) => {
+      const day = options.day ?? dayKey();
+      // During a flow there is no single dhikr on the counter, so one must be named.
+      const id = options.dhikrId ?? (state.sequence ? null : state.selectedId);
+      if (!id) return;
+      const toCounter = !state.sequence && id === state.selectedId && day === dayKey();
+      dispatch({ type: 'addCount', id, day, amount, toCounter });
     },
+    undoAdd: () => dispatch({ type: 'undoAdd' }),
     reset: () => dispatch({ type: 'reset' }),
     select: (id) => dispatch({ type: 'select', id }),
     addCustom: (input) =>

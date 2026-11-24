@@ -9,10 +9,17 @@ import { useI18n } from '@/i18n';
 import { dayTotal, type History } from '@/store/dhikr-store';
 import { dayKey, formatMonth, weekdayNames } from '@/utils/date';
 
-type MonthCalendarProps = { history: History; goal: number | null };
+type MonthCalendarProps = {
+  history: History;
+  goal: number | null;
+  /** The day (`YYYY-MM-DD`) shown below the calendar, outlined. */
+  selected?: string;
+  /** Tapping a day (today or earlier) picks it. */
+  onSelect?: (day: string) => void;
+};
 
 /** One month at a time, each day marked by whether any dhikr was counted and the goal reached. */
-export function MonthCalendar({ history, goal }: MonthCalendarProps) {
+export function MonthCalendar({ history, goal, selected, onSelect }: MonthCalendarProps) {
   const theme = useTheme();
   const { t, locale, rtl } = useI18n();
   const now = new Date();
@@ -64,20 +71,31 @@ export function MonthCalendar({ history, goal }: MonthCalendarProps) {
             const key = dayKey(new Date(shown.year, shown.month, day));
             const total = dayTotal(history[key]);
             const goalMet = goal !== null && total >= goal;
+            // Keys sort as dates, so this is "after today".
+            const future = key > todayKey;
+            const isSelected = key === selected;
             return (
-              <View key={i} style={styles.cell}>
+              <Pressable
+                key={i}
+                onPress={() => onSelect?.(key)}
+                disabled={!onSelect || future}
+                accessibilityRole="button"
+                accessibilityState={{ selected: isSelected, disabled: future }}
+                style={({ pressed }) => [styles.cell, pressed && styles.pressed]}>
                 <View
                   style={[
                     styles.day,
                     total > 0 && { backgroundColor: theme.backgroundSelected },
                     goalMet && { backgroundColor: theme.accent },
                     key === todayKey && { borderColor: theme.text },
+                    isSelected && [styles.daySelected, { borderColor: theme.accent }],
+                    future && styles.future,
                   ]}>
                   <ThemedText type="small" style={goalMet && { color: theme.onAccent }}>
                     {day}
                   </ThemedText>
                 </View>
-              </View>
+              </Pressable>
             );
           })}
         </View>
@@ -160,6 +178,12 @@ const styles = StyleSheet.create({
     borderColor: 'transparent',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  daySelected: {
+    borderWidth: 2.5,
+  },
+  future: {
+    opacity: 0.35,
   },
   legend: {
     flexDirection: 'row',

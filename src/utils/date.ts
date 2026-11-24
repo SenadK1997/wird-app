@@ -40,3 +40,8 @@ export function weekdayNames(locale?: string) {
     new Date(2024, 0, 1 + i).toLocaleDateString(locale, { weekday: 'narrow' })
   );
 }
+
+/** Day key for `daysAgo` days before today (0 = today). */
+export function dayKeyDaysAgo(daysAgo: number, from: Date = new Date()) {
+  return dayKey(new Date(from.getFullYear(), from.getMonth(), from.getDate() - daysAgo));
+}
