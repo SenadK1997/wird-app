@@ -17,6 +17,7 @@ import AppTabs from '@/components/app-tabs';
 import { ConfirmProvider } from '@/components/confirm-dialog';
 import { LaunchScreen } from '@/components/launch-screen';
 import { Welcome } from '@/components/welcome';
+import { NotificationSync } from '@/hooks/use-notifications';
 import { useScheme, useTheme } from '@/hooks/use-theme';
 import { DhikrStoreProvider } from '@/store/dhikr-store';
 
@@ -79,6 +80,8 @@ function ThemedApp() {
           <AppTabs />
         </ConfirmProvider>
       </AdsProvider>
+      {/* Schedules reminders and dhikr nudges once the launch sequence is finished. */}
+      <NotificationSync active={launched} />
       {/* The welcome screen waits for the launch sequence, so the two are never on top of each other. */}
       <Welcome ready={launched} />
       {launched ? null : <LaunchScreen onDone={() => setLaunched(true)} />}

@@ -22,6 +22,7 @@ import {
   type ThemeMode,
 } from '@/constants/theme';
 import { MAX_DAILY_GOAL, MAX_REMINDERS } from '@/data/dhikr';
+import { useNotificationSync } from '@/hooks/use-notifications';
 import { useScheme, useTheme } from '@/hooks/use-theme';
 import { useI18n } from '@/i18n';
 import type { UiKey } from '@/i18n/en';
@@ -29,7 +30,7 @@ import { LANGUAGES } from '@/i18n/languages';
 import { useDhikrStore, type Reminder } from '@/store/dhikr-store';
 import { pickBackup, saveBackup } from '@/utils/backup';
 import { formatTime } from '@/utils/date';
-import { remindersSupported, syncReminders } from '@/utils/reminder';
+import { remindersSupported } from '@/utils/reminder';
 import { openRating, shareApp } from '@/utils/store';
 
 const GOAL_PRESETS = [100, 300, 500, 1000];
@@ -60,6 +61,8 @@ export default function SettingsScreen() {
     dailyGoalEnabled,
     dailyGoal,
     reminders,
+    dhikrRemindersEnabled,
+    dhikrRemindersPerDay,
     hapticsEnabled,
     soundEnabled,
     keepAwake,
@@ -88,7 +91,28 @@ export default function SettingsScreen() {
 
   const goalText = goalDraft ?? String(dailyGoal);
   const goalValid = /^\d+$/.test(goalText) && Number(goalText) >= 1 && Number(goalText) <= MAX_DAILY_GOAL;
-  const notificationText = { title: t('notificationTitle'), body: t('notificationBody') };
+  const sync = useNotificationSync();
+
+  // Turn the dhikr nudges on/off. Turning on needs the user to allow notifications.
+  const toggleNudges = async (enabled: boolean) => {
+    setReminderError(null);
+    if (!enabled) {
+      set({ dhikrRemindersEnabled: false });
+      sync({ nudgesEnabled: false }).catch(() => {});
+      return;
+    }
+    try {
+      if (await sync({ nudgesEnabled: true })) set({ dhikrRemindersEnabled: true });
+      else setReminderError(t('errorNotifications'));
+    } catch {
+      setReminderError(t('errorReminder'));
+    }
+  };
+
+  const setNudgesPerDay = (perDay: number) => {
+    set({ dhikrRemindersPerDay: perDay });
+    if (dhikrRemindersEnabled) sync({ nudgesPerDay: perDay }).catch(() => {});
+  };
 
   const handleGoalText = (text: string) => {
     const digits = text.replace(/\D/g, '');
@@ -106,7 +130,7 @@ export default function SettingsScreen() {
   const applyReminders = async (next: Reminder[]) => {
     setReminderError(null);
     try {
-      if (await syncReminders(next, notificationText)) set({ reminders: next });
+      if (await sync({ reminders: next })) set({ reminders: next });
       else setReminderError(t('errorNotifications'));
     } catch {
       setReminderError(t('errorReminder'));
@@ -149,7 +173,7 @@ export default function SettingsScreen() {
     // The backup may hold reminders this phone has not scheduled yet.
     try {
       const restored: Reminder[] = JSON.parse(raw).state.reminders ?? [];
-      if (!(await syncReminders(restored, notificationText))) {
+      if (!(await sync({ reminders: restored }))) {
         set({ reminders: restored.map((r) => ({ ...r, enabled: false })) });
       }
     } catch {

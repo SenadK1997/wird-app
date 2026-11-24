@@ -39,6 +39,10 @@ type Settings = {
   dailyGoalEnabled: boolean;
   dailyGoal: number;
   reminders: Reminder[];
+  /** Rotating verse/hadith nudges a few times a day. On by default once notifications are allowed. */
+  dhikrRemindersEnabled: boolean;
+  /** How many dhikr nudges to send each day (1–3). */
+  dhikrRemindersPerDay: number;
   themeMode: ThemeMode;
   accent: AccentId;
   language: LanguageSetting;
@@ -95,6 +99,8 @@ const initialState: State = {
   dailyGoalEnabled: true,
   dailyGoal: 100,
   reminders: [],
+  dhikrRemindersEnabled: true,
+  dhikrRemindersPerDay: 3,
   themeMode: 'dark',
   accent: 'gold',
   themeVersion: THEME_VERSION,

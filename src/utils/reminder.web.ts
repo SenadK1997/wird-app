@@ -4,6 +4,21 @@ import type { Reminder } from '@/store/dhikr-store';
 // altogether also keeps its "not supported on web" warnings out of the console.
 export const remindersSupported = false;
 
-export async function syncReminders(_reminders: Reminder[], _text: { title: string; body: string }) {
+export type NudgeItem = { body: string; dhikrId: string | null; salawat: boolean };
+
+export type NotificationConfig = {
+  reminders: Reminder[];
+  reminderText: { title: string; body: string };
+  nudgeTitle: string;
+  nudgesEnabled: boolean;
+  nudgesPerDay: number;
+  nudges: NudgeItem[];
+};
+
+export async function syncNotifications(_cfg: NotificationConfig) {
   return true;
+}
+
+export function onNotificationTap(_handler: (dhikrId: string) => void) {
+  return { remove() {} };
 }
