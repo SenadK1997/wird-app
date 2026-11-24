@@ -93,13 +93,13 @@ export const bn: Translations = {
 
     today: 'আজ',
     dayStreak: 'টানা দিন',
-    bestStreak: 'সেরা ধারা',
+    bestStreak: 'সর্বোচ্চ টানা দিন',
     allTime: 'সর্বমোট',
     dailyGoal: 'দৈনিক লক্ষ্য',
     dailyGoalReached: 'আজকের লক্ষ্য পূর্ণ',
     countOfGoal: '{goal}-এর মধ্যে {count}',
     noneToday: 'আজ এখনো কোনো জিকির গোনা হয়নি।',
-    last7: 'শেষ 7 দিন',
+    last7: 'গত 7 দিন',
     goalReachedShort: 'লক্ষ্য পূর্ণ',
     deletedDhikr: 'মুছে ফেলা জিকির',
     legendSome: 'কিছু জিকির',
@@ -156,7 +156,7 @@ export const bn: Translations = {
     counterSection: 'গণনা',
     vibration: 'কম্পন',
     vibrationHint: 'প্রতিটি গণনায় হালকা কম্পন, আর রাউন্ড শেষে একটু জোরে',
-    tapSound: 'চাপের শব্দ',
+    tapSound: 'ট্যাপের শব্দ',
     tapSoundHint: 'প্রতিটি গণনায় হালকা ক্লিক',
     keepScreenOn: 'স্ক্রিন চালু রাখুন',
     keepScreenOnHint: 'গণনা খোলা থাকলে ফোন লক হবে না',
@@ -188,7 +188,7 @@ export const bn: Translations = {
     contact: 'যোগাযোগ',
 
     quote: 'জেনে রাখো, আল্লাহর স্মরণেই অন্তর প্রশান্ত হয়।',
-    preparing: 'আপনার ওয়িরদ প্রস্তুত হচ্ছে…',
+    preparing: 'আপনার ওয়ির্দ প্রস্তুত হচ্ছে…',
     welcomeTitle: 'Wird-এ স্বাগতম',
     welcomeTagline: 'আপনার প্রতিদিনের জিকিরের জন্য একটি সহজ গণনা।',
     welcomeFlows:

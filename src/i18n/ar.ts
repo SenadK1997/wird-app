@@ -108,11 +108,11 @@ export const ar: Translations = {
     nextMonth: 'الشهر التالي',
     share: 'مشاركة تقدم اليوم',
     shareTitle: 'ذكر اليوم',
-    shareText: 'ذكرتُ الله اليوم {count} مرة مع تطبيق Wird. أيام متتالية: {streak}.',
+    shareText: 'ذكرتُ الله اليوم مع تطبيق Wird، وعدد الأذكار: {count}. أيام متتالية: {streak}.',
     shareAction: 'مشاركة',
     copied: 'تم النسخ.',
     shareFailed: 'المشاركة غير متاحة هنا.',
-    dhikrToday: 'ذكرًا اليوم',
+    dhikrToday: 'من الأذكار اليوم',
 
     language: 'اللغة',
     followPhone: 'حسب الهاتف',
@@ -147,7 +147,7 @@ export const ar: Translations = {
     dhikrReminders: 'تذكيرات الذكر',
     dhikrRemindersHint: 'آية أو حديث قصير عدة مرات في اليوم — اضغط عليه لتبدأ العدّ',
     timesPerDay: '{count} يوميًا',
-    remindersOff: 'إيقاف',
+    remindersOff: 'متوقف',
     errorNotifications:
       'الإشعارات متوقفة لتطبيق Wird. اسمح بها من إعدادات الهاتف لتصلك التذكيرات.',
     errorReminder: 'تعذر ضبط التذكير. حاول مرة أخرى.',
@@ -156,9 +156,9 @@ export const ar: Translations = {
 
     counterSection: 'العداد',
     vibration: 'الاهتزاز',
-    vibrationHint: 'اهتزاز خفيف مع كل عدّة وأقوى عند اكتمال الجولة',
+    vibrationHint: 'اهتزاز خفيف عند كل عدّ وأقوى عند اكتمال الجولة',
     tapSound: 'صوت النقر',
-    tapSoundHint: 'نقرة خفيفة مع كل عدّة',
+    tapSoundHint: 'نقرة خفيفة عند كل عدّ',
     keepScreenOn: 'إبقاء الشاشة مضاءة',
     keepScreenOnHint: 'لا يُقفل الهاتف ما دام العداد مفتوحًا',
 

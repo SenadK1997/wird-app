@@ -101,8 +101,8 @@ export const ms: Translations = {
     noneToday: 'Belum ada zikir dikira hari ini.',
     last7: '7 hari lepas',
     goalReachedShort: 'sasaran tercapai',
-    deletedDhikr: 'Zikir dipadam',
-    legendSome: 'Sedikit zikir',
+    deletedDhikr: 'Zikir yang dipadam',
+    legendSome: 'Ada zikir',
     legendGoal: 'Sasaran tercapai',
     previousMonth: 'Bulan sebelumnya',
     nextMonth: 'Bulan seterusnya',
@@ -164,7 +164,7 @@ export const ms: Translations = {
 
     backup: 'Sandaran',
     backupHint:
-      'Simpan kiraan, sejarah dan zikir sendiri anda ke dalam fail, atau pulihkannya daripada fail.',
+      'Simpan kiraan, sejarah dan zikir anda sendiri ke dalam fail, atau pulihkannya daripada fail.',
     exportBackup: 'Eksport sandaran',
     restoreBackup: 'Pulihkan sandaran',
     restoreTitle: 'Pulihkan sandaran',
@@ -242,7 +242,7 @@ export const ms: Translations = {
     'rabbighfir-li':
       'Wahai Tuhanku, ampunilah aku dan terimalah taubatku. Sesungguhnya Engkau Maha Penerima taubat, Maha Penyayang',
     'sayyid-al-istighfar':
-      'Ya Allah, Engkaulah Tuhanku. Tiada tuhan melainkan Engkau. Engkau telah menciptakan aku dan aku adalah hamba-Mu, dan aku berpegang pada janji dan ikrarku kepada-Mu sedaya mampuku. Aku berlindung kepada-Mu daripada kejahatan perbuatanku. Aku mengakui nikmat-Mu kepadaku dan aku mengakui dosaku, maka ampunilah aku, kerana tiada yang mengampunkan dosa melainkan Engkau.',
+      'Ya Allah, Engkaulah Tuhanku. Tiada tuhan melainkan Engkau. Engkau telah mencipta aku dan aku adalah hamba-Mu, dan aku berpegang pada perjanjian dan janji-Mu sedaya upayaku. Aku berlindung kepada-Mu daripada kejahatan perbuatanku. Aku mengakui nikmat-Mu kepadaku dan aku mengakui dosaku, maka ampunilah aku, kerana tiada yang mengampunkan dosa melainkan Engkau.',
     'dua-yunus':
       'Tiada tuhan melainkan Engkau. Maha Suci Engkau. Sesungguhnya aku termasuk orang-orang yang zalim',
     hasbunallah: 'Cukuplah Allah bagi kami, dan Dialah sebaik-baik Pelindung',
@@ -264,7 +264,7 @@ export const ms: Translations = {
     'before-eating': 'Dengan nama Allah',
     'forgot-bismillah': 'Dengan nama Allah, pada awalnya dan akhirnya',
     'after-eating':
-      'Segala puji bagi Allah yang memberiku makan ini dan mengurniakannya kepadaku tanpa daya dan kekuatan daripadaku',
+      'Segala puji bagi Allah yang memberiku makanan ini dan mengurniakannya kepadaku tanpa daya dan kekuatan daripadaku',
     'travel-dua':
       'Maha Suci Allah yang telah memudahkan kenderaan ini bagi kami, sedangkan kami tidak mampu menguasainya, dan sesungguhnya kami akan kembali kepada Tuhan kami',
     'travel-birr':

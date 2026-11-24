@@ -32,7 +32,7 @@ export const ur: Translations = {
 
     flows: 'سلسلے',
     newFlow: 'نیا سلسلہ',
-    stepsCount: '{n} مراحل',
+    stepsCount: 'مراحل: {n}',
     flowAfterPrayer: 'نماز کے بعد کی تسبیح',
     flowMorning: 'صبح کے اذکار',
     flowEvening: 'شام کے اذکار',
@@ -93,8 +93,8 @@ export const ur: Translations = {
 
     today: 'آج',
     dayStreak: 'مسلسل دن',
-    bestStreak: 'طویل ترین سلسلہ',
-    allTime: 'کل',
+    bestStreak: 'سب سے زیادہ مسلسل دن',
+    allTime: 'مجموعی',
     dailyGoal: 'روزانہ ہدف',
     dailyGoalReached: 'روزانہ ہدف پورا ہو گیا',
     countOfGoal: '{count} / {goal}',
@@ -197,7 +197,7 @@ export const ur: Translations = {
     noGoal: 'کوئی ہدف نہیں',
     start: 'شروع کریں',
 
-    hourShort: 'گھ',
+    hourShort: 'گھنٹہ',
     minuteShort: 'منٹ',
   },
 

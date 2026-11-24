@@ -213,7 +213,7 @@ export const de: Translations = {
     'subhanallahi-wa-bihamdihi': 'Gepriesen sei Allah, und Ihm gebührt das Lob',
     'la-hawla': 'Es gibt keine Macht und keine Kraft außer durch Allah',
     'ayat-al-kursi':
-      'Allah – es gibt keinen Gott außer Ihm, dem Lebendigen, dem Beständigen. Ihn überkommt weder Schlummer noch Schlaf. Ihm gehört, was in den Himmeln und was auf der Erde ist. Wer ist es, der bei Ihm Fürsprache einlegen könnte, außer mit Seiner Erlaubnis? Er weiß, was vor ihnen und was hinter ihnen liegt, und sie umfassen nichts von Seinem Wissen, außer was Er will. Sein Kursi umfasst die Himmel und die Erde, und ihre Bewahrung ermüdet Ihn nicht. Er ist der Erhabene, der Allmächtige.',
+      'Allah – es gibt keinen Gott außer Ihm, dem Lebendigen, dem Beständigen. Ihn überkommt weder Schlummer noch Schlaf. Ihm gehört, was in den Himmeln und was auf der Erde ist. Wer ist es, der bei Ihm Fürsprache einlegen könnte, außer mit Seiner Erlaubnis? Er weiß, was vor ihnen und was hinter ihnen liegt, und sie umfassen nichts von Seinem Wissen, außer was Er will. Sein Kursi umfasst die Himmel und die Erde, und ihre Bewahrung ermüdet Ihn nicht. Er ist der Erhabene, der Gewaltige.',
     'al-ikhlas':
       'Sag: Er ist Allah, der Eine. Allah, der Absolute, auf den alle angewiesen sind. Er zeugt nicht und ist nicht gezeugt worden. Und niemand ist Ihm gleich.',
     'al-falaq':
@@ -236,7 +236,7 @@ export const de: Translations = {
       'O Allah, ich bitte Dich um nützliches Wissen, gute Versorgung und angenommene Taten',
     'ikfini-bihalalik':
       'O Allah, lass mir das Erlaubte genügen statt des Verbotenen, und mach mich durch Deine Huld unabhängig von allen außer Dir',
-    'rabbi-inni-faqir': 'Mein Herr, ich bin bedürftig nach allem Guten, das Du mir herabsendest',
+    'rabbi-inni-faqir': 'Mein Herr, ich bin all des Guten bedürftig, das Du mir herabsendest',
     'astaghfirullah-wa-atubu': 'Ich bitte Allah um Vergebung und wende mich Ihm reumütig zu',
     'rabbighfir-li':
       'Mein Herr, vergib mir und nimm meine Reue an. Du bist der die Reue Annehmende, der Barmherzige',

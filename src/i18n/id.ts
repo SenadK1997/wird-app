@@ -10,7 +10,7 @@ export const id: Translations = {
     save: 'Simpan',
     edit: 'Ubah',
     delete: 'Hapus',
-    remove: 'Buang',
+    remove: 'Hapus',
     back: 'Kembali',
     close: 'Tutup',
 
@@ -93,7 +93,7 @@ export const id: Translations = {
 
     today: 'Hari ini',
     dayStreak: 'Hari beruntun',
-    bestStreak: 'Beruntun terlama',
+    bestStreak: 'Rekor beruntun',
     allTime: 'Sepanjang waktu',
     dailyGoal: 'Target harian',
     dailyGoalReached: 'Target harian tercapai',
@@ -101,7 +101,7 @@ export const id: Translations = {
     noneToday: 'Belum ada dzikir yang dihitung hari ini.',
     last7: '7 hari terakhir',
     goalReachedShort: 'target tercapai',
-    deletedDhikr: 'Dzikir dihapus',
+    deletedDhikr: 'Dzikir yang dihapus',
     legendSome: 'Ada dzikir',
     legendGoal: 'Target tercapai',
     previousMonth: 'Bulan sebelumnya',
@@ -211,7 +211,7 @@ export const id: Translations = {
     astaghfirullah: 'Aku memohon ampun kepada Allah',
     salawat: 'Ya Allah, limpahkanlah selawat kepada Muhammad',
     'subhanallahi-wa-bihamdihi': 'Mahasuci Allah dan segala puji bagi-Nya',
-    'la-hawla': 'Tiada daya dan kekuatan kecuali dengan pertolongan Allah',
+    'la-hawla': 'Tiada daya dan kekuatan kecuali dengan Allah',
     'ayat-al-kursi':
       'Allah, tiada tuhan selain Dia, Yang Mahahidup, Yang terus-menerus mengurus makhluk-Nya. Dia tidak mengantuk dan tidak tidur. Milik-Nya apa yang ada di langit dan apa yang ada di bumi. Tiada yang dapat memberi syafaat di sisi-Nya tanpa izin-Nya. Dia mengetahui apa yang di hadapan mereka dan apa yang di belakang mereka, dan mereka tidak mengetahui sesuatu pun dari ilmu-Nya kecuali apa yang Dia kehendaki. Kursi-Nya meliputi langit dan bumi, dan Dia tidak merasa berat memelihara keduanya. Dia Mahatinggi, Mahaagung.',
     'al-ikhlas':
@@ -261,6 +261,6 @@ export const id: Translations = {
     'after-eating': 'Segala puji bagi Allah yang memberiku makanan ini dan memberikannya kepadaku tanpa daya dan kekuatan dariku',
     'travel-dua': 'Mahasuci Allah yang telah menundukkan semua ini bagi kami, padahal kami sebelumnya tidak mampu menguasainya, dan sesungguhnya kami akan kembali kepada Tuhan kami',
     'travel-birr': 'Ya Allah, kami memohon kepada-Mu dalam perjalanan kami ini kebaikan dan takwa, serta amal yang Engkau ridai',
-    'returning-travel': 'Kami kembali, bertaubat, beribadah, dan memuji Tuhan kami',
+    'returning-travel': 'Kami kembali, bertobat, beribadah, dan memuji Tuhan kami',
   },
 };
