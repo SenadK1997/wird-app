@@ -147,7 +147,7 @@ export const ms: Translations = {
     dhikrReminders: 'Peringatan zikir',
     dhikrRemindersHint: 'Ayat atau hadis ringkas beberapa kali sehari — ketik untuk mula mengira',
     timesPerDay: '{count} kali sehari',
-    remindersOff: 'Tutup',
+    remindersOff: 'Mati',
     errorNotifications:
       'Pemberitahuan dimatikan untuk Wird. Benarkannya dalam Tetapan telefon untuk menerima peringatan.',
     errorReminder: 'Peringatan tidak dapat ditetapkan. Sila cuba lagi.',

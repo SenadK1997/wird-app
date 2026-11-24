@@ -42,7 +42,7 @@ export const bn: Translations = {
     myDhikr: 'আমার জিকির',
     noFavourites: 'কোনো জিকিরের তারকায় চাপ দিলে তা এখানে থাকবে।',
     searchDhikr: 'জিকির বা অর্থ খুঁজুন',
-    clearSearch: 'খোঁজা মুছুন',
+    clearSearch: 'অনুসন্ধান মুছুন',
     noResults: 'কোনো জিকির পাওয়া যায়নি',
     counting: 'গণনা চলছে',
     noCustom: 'যেকোনো লক্ষ্যসংখ্যা দিয়ে নিজের জিকির যোগ করুন।',

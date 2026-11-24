@@ -146,7 +146,7 @@ export const tr: Translations = {
     remindersWeb: 'Hatırlatıcılar telefon uygulamasında kullanılabilir.',
     dhikrReminders: 'Zikir hatırlatıcıları',
     dhikrRemindersHint: 'Günde birkaç kez kısa bir ayet veya hadis — saymaya başlamak için dokunun',
-    timesPerDay: 'Günde {count}',
+    timesPerDay: 'Günde {count} kez',
     remindersOff: 'Kapalı',
     errorNotifications:
       'Wird için bildirimler kapalı. Hatırlatıcı almak için telefonun Ayarlar bölümünden izin verin.',

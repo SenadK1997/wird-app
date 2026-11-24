@@ -44,7 +44,7 @@ export const ru: Translations = {
     searchDhikr: 'Поиск зикра или значения',
     clearSearch: 'Очистить поиск',
     noResults: 'Зикры не найдены',
-    counting: 'Считается',
+    counting: 'Сейчас считается',
     noCustom: 'Добавьте свои зикры с любой целью.',
     addCustom: 'Добавить свой зикр',
     target: 'Цель {n}',
