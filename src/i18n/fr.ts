@@ -256,7 +256,7 @@ export const fr: Translations = {
     'leaving-home':
       "Au nom d'Allah, je place ma confiance en Allah, il n'y a de force ni de puissance qu'en Allah",
     'entering-home':
-      "Au nom d'Allah nous entrons, au nom d'Allah nous sortons, et en notre Seigneur nous plaçons notre confiance",
+      "Au nom d'Allah nous entrons, au nom d'Allah nous sortons, et en Allah, notre Seigneur, nous plaçons notre confiance",
     'entering-mosque': 'Ô Allah, ouvre-moi les portes de Ta miséricorde',
     'leaving-mosque': 'Ô Allah, je Te demande de Ta grâce',
     'before-eating': "Au nom d'Allah",

@@ -256,7 +256,7 @@ export const de: Translations = {
     'leaving-home':
       'Im Namen Allahs, ich vertraue auf Allah, und es gibt keine Macht und keine Kraft außer durch Allah',
     'entering-home':
-      'Im Namen Allahs treten wir ein, im Namen Allahs gehen wir hinaus, und auf unseren Herrn vertrauen wir',
+      'Im Namen Allahs treten wir ein, im Namen Allahs gehen wir hinaus, und auf Allah, unseren Herrn, vertrauen wir',
     'entering-mosque': 'O Allah, öffne mir die Tore Deiner Barmherzigkeit',
     'leaving-mosque': 'O Allah, ich bitte Dich um Deine Huld',
     'before-eating': 'Im Namen Allahs',

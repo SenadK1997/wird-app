@@ -321,7 +321,7 @@ export const SUGGESTED_DHIKR: Dhikr[] = [
       'بِاسْمِكَ رَبِّي وَضَعْتُ جَنْبِي، وَبِكَ أَرْفَعُهُ، إِنْ أَمْسَكْتَ نَفْسِي فَارْحَمْهَا، وَإِنْ أَرْسَلْتَهَا فَاحْفَظْهَا بِمَا تَحْفَظُ بِهِ عِبَادَكَ الصَّالِحِينَ',
     target: 1,
     category: 'sleep',
-    source: 'Bukhari 6320',
+    source: 'Abu Dawud 5050',
   }),
   builtIn({
     id: 'qini-adhabak',
@@ -345,8 +345,8 @@ export const SUGGESTED_DHIKR: Dhikr[] = [
   builtIn({
     id: 'leaving-home',
     title: "Bismillah, tawakkaltu 'alallah",
-    transliteration: "Bismillah, tawakkaltu 'alallah, wa la hawla wa la quwwata illa billah",
-    arabic: 'بِسْمِ اللَّهِ تَوَكَّلْتُ عَلَى اللَّهِ وَلَا حَوْلَ وَلَا قُوَّةَ إِلَّا بِاللَّهِ',
+    transliteration: "Bismillah, tawakkaltu 'alallah, la hawla wa la quwwata illa billah",
+    arabic: 'بِسْمِ اللَّهِ تَوَكَّلْتُ عَلَى اللَّهِ لَا حَوْلَ وَلَا قُوَّةَ إِلَّا بِاللَّهِ',
     target: 1,
     category: 'home',
     source: 'Abu Dawud 5095',
@@ -354,8 +354,8 @@ export const SUGGESTED_DHIKR: Dhikr[] = [
   builtIn({
     id: 'entering-home',
     title: 'Bismillahi walajna',
-    transliteration: "Bismillahi walajna, wa bismillahi kharajna, wa 'ala Rabbina tawakkalna",
-    arabic: 'بِسْمِ اللَّهِ وَلَجْنَا، وَبِسْمِ اللَّهِ خَرَجْنَا، وَعَلَى رَبِّنَا تَوَكَّلْنَا',
+    transliteration: "Bismillahi walajna, wa bismillahi kharajna, wa 'alallahi Rabbina tawakkalna",
+    arabic: 'بِسْمِ اللَّهِ وَلَجْنَا، وَبِسْمِ اللَّهِ خَرَجْنَا، وَعَلَى اللَّهِ رَبِّنَا تَوَكَّلْنَا',
     target: 1,
     category: 'home',
     source: 'Abu Dawud 5096',

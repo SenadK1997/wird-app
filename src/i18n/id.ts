@@ -253,7 +253,7 @@ export const id: Translations = {
     'qini-adhabak': 'Ya Allah, lindungilah aku dari azab-Mu pada hari Engkau membangkitkan hamba-hamba-Mu',
     ahyana: 'Segala puji bagi Allah yang menghidupkan kami setelah mematikan kami, dan kepada-Nya kami dibangkitkan',
     'leaving-home': 'Dengan nama Allah, aku bertawakal kepada Allah, tiada daya dan kekuatan kecuali dengan Allah',
-    'entering-home': 'Dengan nama Allah kami masuk, dengan nama Allah kami keluar, dan kepada Tuhan kami, kami bertawakal',
+    'entering-home': 'Dengan nama Allah kami masuk, dengan nama Allah kami keluar, dan kepada Allah, Tuhan kami, kami bertawakal',
     'entering-mosque': 'Ya Allah, bukakanlah untukku pintu-pintu rahmat-Mu',
     'leaving-mosque': 'Ya Allah, sesungguhnya aku memohon karunia-Mu',
     'before-eating': 'Dengan nama Allah',

@@ -250,7 +250,7 @@ export const en = {
     'qini-adhabak': 'O Allah, protect me from Your punishment on the Day You resurrect Your servants',
     ahyana: 'All praise is due to Allah, who gave us life after He had caused us to die, and to Him is the resurrection',
     'leaving-home': 'In the name of Allah, I place my trust in Allah, and there is no might nor power except with Allah',
-    'entering-home': 'In the name of Allah we enter, in the name of Allah we leave, and upon our Lord we rely',
+    'entering-home': 'In the name of Allah we enter, in the name of Allah we leave, and upon Allah, our Lord, we rely',
     'entering-mosque': 'O Allah, open for me the gates of Your mercy',
     'leaving-mosque': 'O Allah, I ask You of Your bounty',
     'before-eating': 'In the name of Allah',

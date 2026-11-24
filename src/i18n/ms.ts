@@ -258,7 +258,7 @@ export const ms: Translations = {
     'leaving-home':
       'Dengan nama Allah, aku bertawakal kepada Allah, tiada daya dan kekuatan melainkan dengan Allah',
     'entering-home':
-      'Dengan nama Allah kami masuk, dengan nama Allah kami keluar, dan kepada Tuhan kami, kami bertawakal',
+      'Dengan nama Allah kami masuk, dengan nama Allah kami keluar, dan kepada Allah, Tuhan kami, kami bertawakal',
     'entering-mosque': 'Ya Allah, bukakanlah untukku pintu-pintu rahmat-Mu',
     'leaving-mosque': 'Ya Allah, sesungguhnya aku memohon kurniaan-Mu',
     'before-eating': 'Dengan nama Allah',

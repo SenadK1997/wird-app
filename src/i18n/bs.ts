@@ -248,7 +248,7 @@ export const bs: Translations = {
     'qini-adhabak': 'Allahu, sačuvaj me Svoje kazne na Dan kada proživiš Svoje robove',
     ahyana: 'Hvala Allahu koji nas je oživio nakon što nas je usmrtio, i Njemu je proživljenje',
     'leaving-home': 'U ime Allaha, oslanjam se na Allaha, i nema snage ni moći osim uz Allaha',
-    'entering-home': 'U ime Allaha ulazimo, u ime Allaha izlazimo, i na našeg Gospodara se oslanjamo',
+    'entering-home': 'U ime Allaha ulazimo, u ime Allaha izlazimo, i na Allaha, našeg Gospodara, se oslanjamo',
     'entering-mosque': 'Allahu, otvori mi vrata Svoje milosti',
     'leaving-mosque': 'Allahu, molim Te od Tvoje dobrote',
     'before-eating': 'U ime Allaha',

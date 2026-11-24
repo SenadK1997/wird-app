@@ -248,7 +248,7 @@ export const tr: Translations = {
     'qini-adhabak': 'Allah\'ım, kullarını dirilttiğin gün beni azabından koru',
     ahyana: 'Bizi öldürdükten sonra dirilten Allah\'a hamdolsun, diriliş de O\'nadır',
     'leaving-home': 'Allah\'ın adıyla, Allah\'a tevekkül ettim, güç ve kuvvet ancak Allah\'tandır',
-    'entering-home': 'Allah\'ın adıyla girdik, Allah\'ın adıyla çıktık ve Rabbimize tevekkül ettik',
+    'entering-home': 'Allah\'ın adıyla girdik, Allah\'ın adıyla çıktık ve Rabbimiz olan Allah\'a tevekkül ettik',
     'entering-mosque': 'Allah\'ım, bana rahmetinin kapılarını aç',
     'leaving-mosque': 'Allah\'ım, Senden lütfunu istiyorum',
     'before-eating': 'Allah\'ın adıyla',
