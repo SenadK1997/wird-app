@@ -5,21 +5,27 @@ import { Button } from '@/components/button';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { AppFonts, Spacing } from '@/constants/theme';
+import { SUGGESTED_DHIKR } from '@/data/dhikr';
 import { useTheme } from '@/hooks/use-theme';
 import { useI18n } from '@/i18n';
 import { shareProgress } from '@/utils/share-progress';
+
+/** The Arabic on the card comes from the app's own, verified Alhamdulillah, never retyped. */
+const ALHAMDULILLAH = SUGGESTED_DHIKR.find((d) => d.id === 'alhamdulillah')?.arabic;
 
 type ShareDialogProps = {
   visible: boolean;
   count: number;
   streak: number;
+  /** Today's goal is reached: the card says so and gives thanks. */
+  goalReached?: boolean;
   onClose: () => void;
 };
 
 /** Shows the card that gets shared, so the user sees it before sending it anywhere. */
-export function ShareDialog({ visible, count, streak, onClose }: ShareDialogProps) {
+export function ShareDialog({ visible, count, streak, goalReached, onClose }: ShareDialogProps) {
   const theme = useTheme();
-  const { t, formatNumber } = useI18n();
+  const { t, formatNumber, locale } = useI18n();
   const card = useRef<View>(null);
   const [status, setStatus] = useState<string | null>(null);
 
@@ -39,25 +45,46 @@ export function ShareDialog({ visible, count, streak, onClose }: ShareDialogProp
     }
   };
 
+  const date = new Date().toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' });
+  const onCard = { color: theme.onAccent };
+
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={close}>
       <Pressable style={styles.backdrop} onPress={close} accessibilityLabel={t('close')}>
         {/* Swallows presses so tapping the dialog itself does not dismiss it. */}
         <Pressable onPress={() => {}}>
           <ThemedView style={styles.dialog}>
+            {goalReached ? (
+              <ThemedText type="smallBold" style={styles.heading}>
+                {t('goalReachedTitle')}
+              </ThemedText>
+            ) : null}
+
             {/* collapsable={false} keeps this a real native view so it can be captured as an image. */}
             <View
               ref={card}
               collapsable={false}
               style={[styles.card, { backgroundColor: theme.accent }]}>
-              <ThemedText type="smallBold" style={{ color: theme.onAccent }}>
-                Wird · {t('shareTitle')}
-              </ThemedText>
-              <ThemedText style={[styles.count, { color: theme.onAccent }]}>
-                {formatNumber(count)}
-              </ThemedText>
-              <ThemedText style={{ color: theme.onAccent }}>{t('dhikrToday')}</ThemedText>
-              <ThemedText type="small" style={{ color: theme.onAccent }}>
+              <View style={styles.cardTop}>
+                <ThemedText type="smallBold" style={onCard}>
+                  Wird
+                </ThemedText>
+                <ThemedText type="small" style={onCard}>
+                  {date}
+                </ThemedText>
+              </View>
+              {goalReached && ALHAMDULILLAH ? (
+                <ThemedText style={[styles.arabic, onCard]}>{ALHAMDULILLAH}</ThemedText>
+              ) : null}
+              <ThemedText style={[styles.count, onCard]}>{formatNumber(count)}</ThemedText>
+              <ThemedText style={onCard}>{t('dhikrToday')}</ThemedText>
+              {goalReached ? (
+                <ThemedText type="smallBold" style={onCard}>
+                  ✓ {t('dailyGoalReached')}
+                </ThemedText>
+              ) : null}
+              <View style={[styles.divider, { backgroundColor: theme.onAccent }]} />
+              <ThemedText type="small" style={onCard}>
                 {t('dayStreak')}: {formatNumber(streak)}
               </ThemedText>
             </View>
@@ -96,18 +123,43 @@ const styles = StyleSheet.create({
     padding: Spacing.three,
     gap: Spacing.three,
   },
+  heading: {
+    fontSize: 18,
+    lineHeight: 26,
+    textAlign: 'center',
+  },
   card: {
     borderRadius: Spacing.three,
-    paddingVertical: Spacing.five,
+    paddingVertical: Spacing.four,
     paddingHorizontal: Spacing.four,
     alignItems: 'center',
     gap: Spacing.one,
+  },
+  cardTop: {
+    alignSelf: 'stretch',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.two,
+  },
+  arabic: {
+    fontFamily: AppFonts.arabic,
+    fontSize: 30,
+    lineHeight: 52,
+    textAlign: 'center',
+    writingDirection: 'rtl',
   },
   count: {
     fontSize: 64,
     lineHeight: 72,
     fontFamily: AppFonts.bold,
     fontVariant: ['tabular-nums'],
+  },
+  divider: {
+    alignSelf: 'stretch',
+    height: StyleSheet.hairlineWidth,
+    opacity: 0.4,
+    marginVertical: Spacing.two,
   },
   buttons: {
     flexDirection: 'row',

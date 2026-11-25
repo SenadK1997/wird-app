@@ -23,6 +23,12 @@ export type History = Record<string, DayTotals>;
 
 export type Reminder = { id: string; enabled: boolean; hour: number; minute: number };
 
+/**
+ * A long-term goal: a number of dhikr from a start day on, e.g. 100,000 salawat. `dhikrId` null
+ * counts every dhikr. Progress is read from the history, so hand-added counts count too.
+ */
+export type PersonalGoal = { id: string; dhikrId: string | null; target: number; start: string };
+
 /** Which lines of the dhikr the counter screen shows. All off leaves a plain counter. */
 export type Display = {
   arabic: boolean;
@@ -57,6 +63,14 @@ type Settings = {
   reviewAskedOn: string | null;
   /** When the app-open ad was last shown, in milliseconds since 1970. 0 if it never has been. */
   lastAppOpenAdAt: number;
+  /** Day the "new version available" question was last shown, or `null`. */
+  updateRemindedOn: string | null;
+  /** Friday: a morning reminder (salawat, Surah al-Kahf) and the salawat card on the Dhikr tab. */
+  jumaEnabled: boolean;
+  /** How many salawat to aim for on a Friday. */
+  jumaSalawatGoal: number;
+  /** A notification when a month and a year are over, to look back at them in History. */
+  reviewNotifications: boolean;
 };
 
 type State = Settings & {
@@ -76,6 +90,7 @@ type State = Settings & {
    * Cleared by the next tap, reset or change of dhikr.
    */
   lastAdd: { id: string; day: string; amount: number; toCounter: boolean } | null;
+  goals: PersonalGoal[];
 };
 
 type Action =
@@ -94,6 +109,8 @@ type Action =
   | { type: 'saveFlow'; flow: Flow }
   | { type: 'removeFlow'; id: string }
   | { type: 'toggleFavorite'; id: string }
+  | { type: 'saveGoal'; goal: PersonalGoal }
+  | { type: 'removeGoal'; id: string }
   | { type: 'set'; patch: Partial<Settings> };
 
 const initialState: State = {
@@ -105,6 +122,7 @@ const initialState: State = {
   history: {},
   sequence: null,
   lastAdd: null,
+  goals: [],
   hapticsEnabled: true,
   soundEnabled: false,
   keepAwake: true,
@@ -122,6 +140,10 @@ const initialState: State = {
   onboarded: false,
   reviewAskedOn: null,
   lastAppOpenAdAt: 0,
+  updateRemindedOn: null,
+  jumaEnabled: true,
+  jumaSalawatGoal: 100,
+  reviewNotifications: true,
 };
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -138,6 +160,7 @@ function normalize(saved: unknown): State | null {
     state.reminders = state.reminder ? [{ ...state.reminder, id: 'reminder-1' }] : [];
   }
   delete state.reminder;
+  if (!Array.isArray(saved.goals)) state.goals = [];
   // Settings saved under the earlier cream-and-green look start out in the new one.
   if (saved.themeVersion !== THEME_VERSION || !(state.accent in Accents)) {
     state.themeMode = 'dark';
@@ -312,6 +335,17 @@ function reducer(current: State, action: Action): State {
           ? state.favorites.filter((id) => id !== action.id)
           : [...state.favorites, action.id],
       };
+    case 'saveGoal': {
+      const exists = state.goals.some((goal) => goal.id === action.goal.id);
+      return {
+        ...state,
+        goals: exists
+          ? state.goals.map((goal) => (goal.id === action.goal.id ? action.goal : goal))
+          : [...state.goals, action.goal],
+      };
+    }
+    case 'removeGoal':
+      return { ...state, goals: state.goals.filter((goal) => goal.id !== action.id) };
     case 'set':
       return { ...state, ...action.patch };
   }
@@ -353,15 +387,20 @@ type Store = Settings & {
   undoAdd: () => void;
   reset: () => void;
   select: (id: string) => void;
-  addCustom: (input: CustomDhikrInput) => void;
+  /** Adds a custom dhikr and returns its id. */
+  addCustom: (input: CustomDhikrInput) => string;
   updateCustom: (id: string, input: CustomDhikrInput) => void;
   removeCustom: (id: string) => void;
   startFlow: (id: string) => void;
   exitFlow: () => void;
   /** Creates a flow, or replaces the one with the given id. */
-  saveFlow: (input: FlowInput, id?: string) => void;
+  saveFlow: (input: FlowInput, id?: string) => string;
   removeFlow: (id: string) => void;
   toggleFavorite: (id: string) => void;
+  goals: PersonalGoal[];
+  /** Creates a personal goal, or replaces the one with the given id. */
+  saveGoal: (input: Omit<PersonalGoal, 'id'>, id?: string) => void;
+  removeGoal: (id: string) => void;
   /** Changes one or more settings. */
   set: (patch: Partial<Settings>) => void;
   /** Everything the app has saved, as text for a backup file. */
@@ -372,7 +411,9 @@ type Store = Settings & {
 
 const StoreContext = createContext<Store | null>(null);
 
-const newId = (prefix: string) => `${prefix}-${Date.now().toString(36)}`;
+// The counter keeps ids apart when several are made in the same millisecond (importing a flow).
+let idCounter = 0;
+const newId = (prefix: string) => `${prefix}-${Date.now().toString(36)}${(idCounter++).toString(36)}`;
 
 export function DhikrStoreProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(reducer, initialState);
@@ -444,17 +485,25 @@ export function DhikrStoreProvider({ children }: { children: ReactNode }) {
     undoAdd: () => dispatch({ type: 'undoAdd' }),
     reset: () => dispatch({ type: 'reset' }),
     select: (id) => dispatch({ type: 'select', id }),
-    addCustom: (input) =>
-      dispatch({ type: 'addCustom', dhikr: { ...input, id: newId('custom'), builtIn: false } }),
+    addCustom: (input) => {
+      const id = newId('custom');
+      dispatch({ type: 'addCustom', dhikr: { ...input, id, builtIn: false } });
+      return id;
+    },
     updateCustom: (id, input) =>
       dispatch({ type: 'updateCustom', dhikr: { ...input, id, builtIn: false } }),
     removeCustom: (id) => dispatch({ type: 'removeCustom', id }),
     startFlow: (id) => dispatch({ type: 'startFlow', id }),
     exitFlow: () => dispatch({ type: 'exitFlow' }),
-    saveFlow: (input, id) =>
-      dispatch({ type: 'saveFlow', flow: { ...input, id: id ?? newId('flow'), builtIn: false } }),
+    saveFlow: (input, id) => {
+      const flowId = id ?? newId('flow');
+      dispatch({ type: 'saveFlow', flow: { ...input, id: flowId, builtIn: false } });
+      return flowId;
+    },
     removeFlow: (id) => dispatch({ type: 'removeFlow', id }),
     toggleFavorite: (id) => dispatch({ type: 'toggleFavorite', id }),
+    saveGoal: (input, id) => dispatch({ type: 'saveGoal', goal: { ...input, id: id ?? newId('goal') } }),
+    removeGoal: (id) => dispatch({ type: 'removeGoal', id }),
     set: (patch) => dispatch({ type: 'set', patch }),
     exportData: () => JSON.stringify({ app: BACKUP_MARKER, version: 1, state }),
     importData: (raw) => {

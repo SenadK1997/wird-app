@@ -1,5 +1,6 @@
 import { FREE_COUNTER_ID, type CategoryId, type Dhikr, type Flow } from '@/data/dhikr';
 import { NAME_MEANINGS } from '@/data/names';
+import { LOCAL_TRANSLITERATION } from '@/data/transliteration';
 import { useDhikrStore } from '@/store/dhikr-store';
 
 import { ar } from './ar';
@@ -59,6 +60,7 @@ export function useI18n() {
   const { language } = useDhikrStore();
   const code = resolveLanguage(language);
   const strings = TRANSLATIONS[code];
+  const local = LOCAL_TRANSLITERATION[code];
   // Western digits in every language, so counts look the same as the big number on the ring.
   const locale = `${code}-u-nu-latn`;
 
@@ -79,9 +81,17 @@ export function useI18n() {
     /** Meaning of a built-in dhikr in the current language, if there is one. */
     meaning: (dhikrId: string): string | undefined =>
       strings.dhikr[dhikrId] ?? NAME_MEANINGS[dhikrId]?.[code],
-    /** Name of a dhikr as shown in lists. Only the free counter's name is translated. */
+    /**
+     * Name of a dhikr as shown in lists. Bosnian and Turkish write built-in dhikr their own way
+     * (see LOCAL_TRANSLITERATION); the free counter's name is translated.
+     */
     dhikrTitle: (dhikr: Pick<Dhikr, 'id' | 'title'>) =>
-      dhikr.id === FREE_COUNTER_ID ? t('freeCounter') : dhikr.title,
+      dhikr.id === FREE_COUNTER_ID ? t('freeCounter') : (local?.[dhikr.id]?.[0] ?? dhikr.title),
+    /** The full transliteration shown on the counter, in this language's spelling where it has one. */
+    dhikrText: (dhikr: Pick<Dhikr, 'id' | 'title' | 'transliteration'>) => {
+      const own = local?.[dhikr.id];
+      return own ? (own[1] ?? own[0]) : (dhikr.transliteration ?? dhikr.title);
+    },
     categoryLabel: (category: CategoryId) => t(CATEGORY_KEYS[category]),
     flowTitle: (flow: Pick<Flow, 'id' | 'title'>) =>
       flow.title ?? (FLOW_KEYS[flow.id] ? t(FLOW_KEYS[flow.id]) : flow.id),

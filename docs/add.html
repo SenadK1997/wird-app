@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>Wird: shared dhikr</title>
+    <meta name="description" content="Someone shared a dhikr with you. Open it in Wird, the dhikr and tasbih counter." />
+    <link rel="icon" href="icon.png" />
+    <link rel="stylesheet" href="site.css" />
+    <style>
+      .card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 24px; margin: 24px 0; text-align: center; }
+      .arabic { font-family: 'Amiri', 'Traditional Arabic', 'Scheherazade New', serif; font-size: 30px; line-height: 1.9; direction: rtl; margin: 0 0 12px; }
+      .name { font-weight: 600; margin: 0 0 4px; }
+      .steps { text-align: left; margin: 12px 0 0; padding: 0; list-style: none; }
+      .steps li { display: flex; justify-content: space-between; gap: 12px; padding: 6px 0; border-bottom: 1px solid var(--border); }
+      .steps li:last-child { border-bottom: 0; }
+      .button { display: block; text-align: center; background: var(--accent); color: #0e2621; font-weight: 600; text-decoration: none; padding: 14px; border-radius: 14px; margin: 12px 0; }
+      .button:hover { color: #0e2621; background: #e3c484; }
+      .hidden { display: none; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <a class="brand" href="./"><img src="icon.png" alt="" width="44" height="44" />Wird</a>
+
+      <h1 id="heading">Someone shared a dhikr with you</h1>
+      <div id="card" class="card hidden"></div>
+      <p id="invalid" class="muted hidden">This link is incomplete. Ask for the link again.</p>
+
+      <a id="open" class="button" href="#">Open in Wird</a>
+      <p id="hint" class="muted">Don't have Wird yet? Install it, then tap this link again.</p>
+      <div class="stores">
+        <a href="https://apps.apple.com/app/id6819874614">App Store</a>
+        <a href="https://play.google.com/store/apps/details?id=com.kenyro.wird">Google Play</a>
+      </div>
+
+      <footer>Wird · Daily dhikr &amp; tasbih · <a href="privacy.html">Privacy</a></footer>
+    </main>
+
+    <script>
+      // Reads the share code after "#" (see src/utils/share-link.ts in the app) and shows it.
+      (function () {
+        var TEXT = {
+          en: { dhikr: 'Someone shared a dhikr with you', flow: 'Someone shared a flow with you', open: 'Open in Wird', hint: "Don't have Wird yet? Install it, then tap this link again.", invalid: 'This link is incomplete. Ask for the link again.' },
+          bs: { dhikr: 'Neko ti je poslao zikr', flow: 'Neko ti je poslao niz zikrova', open: 'Otvori u Wird aplikaciji', hint: 'Nemaš Wird? Instaliraj ga, pa ponovo dodirni ovaj link.', invalid: 'Ovaj link nije potpun. Zatraži ga ponovo.' },
+          tr: { dhikr: 'Biri seninle bir zikir paylaştı', flow: 'Biri seninle bir zikir akışı paylaştı', open: "Wird'de aç", hint: "Wird yüklü değil mi? Yükle, sonra bu bağlantıya tekrar dokun.", invalid: 'Bu bağlantı eksik. Bağlantıyı tekrar iste.' },
+          de: { dhikr: 'Jemand hat ein Dhikr mit dir geteilt', flow: 'Jemand hat einen Ablauf mit dir geteilt', open: 'In Wird öffnen', hint: 'Noch kein Wird? Installiere es und tippe dann erneut auf diesen Link.', invalid: 'Dieser Link ist unvollständig. Bitte um einen neuen Link.' },
+          ar: { dhikr: 'شارك أحدهم معك ذكرًا', flow: 'شارك أحدهم معك سلسلة أذكار', open: 'افتح في تطبيق ورد', hint: 'ليس لديك تطبيق ورد؟ ثبّته ثم اضغط على هذا الرابط مرة أخرى.', invalid: 'هذا الرابط غير مكتمل. اطلب الرابط مرة أخرى.' },
+        };
+        var lang = (navigator.language || 'en').slice(0, 2);
+        if (lang === 'hr' || lang === 'sr') lang = 'bs';
+        var tx = TEXT[lang] || TEXT.en;
+        if (lang === 'ar') document.documentElement.dir = 'rtl';
+
+        var code = (location.hash || '').slice(1);
+        var data = null;
+        try {
+          var b64 = code.replace(/-/g, '+').replace(/_/g, '/');
+          while (b64.length % 4) b64 += '=';
+          var bin = atob(b64);
+          var bytes = new Uint8Array(bin.length);
+          for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+          data = JSON.parse(new TextDecoder().decode(bytes));
+        } catch (e) {
+          data = null;
+        }
+
+        var heading = document.getElementById('heading');
+        var card = document.getElementById('card');
+        var open = document.getElementById('open');
+        document.getElementById('hint').textContent = tx.hint;
+        open.textContent = tx.open;
+
+        function el(tag, cls, text) {
+          var node = document.createElement(tag);
+          if (cls) node.className = cls;
+          if (text) node.textContent = text;
+          return node;
+        }
+
+        if (!data || data.v !== 1 || !(data.d || data.f)) {
+          heading.textContent = tx.dhikr;
+          var invalid = document.getElementById('invalid');
+          invalid.textContent = tx.invalid;
+          invalid.classList.remove('hidden');
+          open.classList.add('hidden');
+          return;
+        }
+
+        if (data.d) {
+          heading.textContent = tx.dhikr;
+          if (data.d.ar) card.appendChild(el('p', 'arabic', data.d.ar));
+          card.appendChild(el('p', 'name', data.d.t));
+          if (data.d.tr) card.appendChild(el('p', 'muted', data.d.tr));
+          card.appendChild(el('p', 'muted', data.d.n ? data.d.n + '×' : '∞'));
+        } else {
+          heading.textContent = tx.flow;
+          card.appendChild(el('p', 'name', data.f.t));
+          var list = el('ul', 'steps');
+          (data.f.s || []).forEach(function (step, index) {
+            var li = el('li');
+            var name = step.c ? step.c.t : step.t || step.b.replace(/-/g, ' ');
+            li.appendChild(el('span', '', index + 1 + '. ' + name));
+            li.appendChild(el('span', 'muted', step.n + '×'));
+            list.appendChild(li);
+          });
+          card.appendChild(list);
+        }
+        card.classList.remove('hidden');
+
+        // Android opens the app through an intent, falling back to the Play Store if it is missing.
+        // Other phones use the app's own link; the store buttons are there if it is not installed.
+        var appLink = 'wird://add?d=' + code;
+        var android = /android/i.test(navigator.userAgent);
+        open.href = android
+          ? 'intent://add?d=' + code + '#Intent;scheme=wird;package=com.kenyro.wird;S.browser_fallback_url=' +
+            encodeURIComponent('https://play.google.com/store/apps/details?id=com.kenyro.wird') + ';end'
+          : appLink;
+      })();
+    </script>
+  </body>
+</html>

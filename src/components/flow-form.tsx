@@ -38,7 +38,7 @@ type DraftStep = { key: number; dhikrId: string; target: string };
 
 function FormBody({ editing, onSubmit, onClose }: Omit<FlowFormProps, 'visible'>) {
   const theme = useTheme();
-  const { t } = useI18n();
+  const { t, dhikrTitle } = useI18n();
   const { suggested, custom, findDhikr } = useDhikrStore();
   const [title, setTitle] = useState(editing?.title ?? '');
   const [steps, setSteps] = useState<DraftStep[]>(
@@ -100,7 +100,7 @@ function FormBody({ editing, onSubmit, onClose }: Omit<FlowFormProps, 'visible'>
                 accessibilityRole="button"
                 style={({ pressed }) => pressed && styles.pressed}>
                 <ThemedView type="backgroundElement" style={styles.option}>
-                  <ThemedText type="smallBold">{dhikr.title}</ThemedText>
+                  <ThemedText type="smallBold">{dhikrTitle(dhikr)}</ThemedText>
                 </ThemedView>
               </Pressable>
             ))}
@@ -139,7 +139,7 @@ function FormBody({ editing, onSubmit, onClose }: Omit<FlowFormProps, 'visible'>
             {steps.map((step, index) => (
               <ThemedView key={step.key} type="backgroundElement" style={styles.step}>
                 <ThemedText type="smallBold" style={styles.stepTitle} numberOfLines={2}>
-                  {index + 1}. {findDhikr(step.dhikrId)?.title ?? t('deletedDhikr')}
+                  {index + 1}. {dhikrTitle(findDhikr(step.dhikrId) ?? { id: step.dhikrId, title: t('deletedDhikr') })}
                 </ThemedText>
                 <View style={styles.stepControls}>
                   <TextInput

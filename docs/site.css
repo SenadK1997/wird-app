@@ -93,6 +93,23 @@ img {
   margin: 16px 0 4px;
 }
 
+/* Store buttons on the home and shared-dhikr pages. */
+.stores {
+  display: flex;
+  gap: 12px;
+  margin: 0 0 32px;
+}
+
+.stores a {
+  flex: 1;
+  text-align: center;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 12px;
+  text-decoration: none;
+  font-weight: 600;
+}
+
 footer {
   margin-top: 56px;
   padding-top: 20px;

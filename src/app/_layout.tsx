@@ -15,7 +15,9 @@ import { useEffect, useState } from 'react';
 import { AdsProvider } from '@/ads/ads-provider';
 import AppTabs from '@/components/app-tabs';
 import { ConfirmProvider } from '@/components/confirm-dialog';
+import { ImportShareDialog } from '@/components/import-share-dialog';
 import { LaunchScreen } from '@/components/launch-screen';
+import { UpdatePrompt } from '@/components/update-prompt';
 import { Welcome } from '@/components/welcome';
 import { NotificationSync } from '@/hooks/use-notifications';
 import { useScheme, useTheme } from '@/hooks/use-theme';
@@ -82,6 +84,10 @@ function ThemedApp() {
       </AdsProvider>
       {/* Schedules reminders and dhikr nudges once the launch sequence is finished. */}
       <NotificationSync active={launched} />
+      {/* Offers to add a dhikr or flow someone shared as a link. */}
+      <ImportShareDialog active={launched} />
+      {/* Tells people on an older version that an update is in the store. */}
+      <UpdatePrompt active={launched} />
       {/* The welcome screen waits for the launch sequence, so the two are never on top of each other. */}
       <Welcome ready={launched} />
       {launched ? null : <LaunchScreen onDone={() => setLaunched(true)} />}

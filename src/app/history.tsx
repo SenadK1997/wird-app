@@ -1,12 +1,15 @@
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AdBanner } from '@/components/ad-banner';
 import { AddCountDialog } from '@/components/add-count-dialog';
+import { Badges } from '@/components/badges';
 import { Button } from '@/components/button';
 import { MonthCalendar } from '@/components/month-calendar';
+import { PeriodReview } from '@/components/period-review';
+import { PersonalGoals } from '@/components/personal-goals';
 import { ProgressRing } from '@/components/progress-ring';
 import { ShareDialog } from '@/components/share-dialog';
 import { ThemedText } from '@/components/themed-text';
@@ -37,8 +40,23 @@ function totalsById(history: History) {
 export default function HistoryScreen() {
   const theme = useTheme();
   const { t, locale, formatNumber, dhikrTitle } = useI18n();
-  const { history, todayTotal, goal, findDhikr, suggested, custom, selected, lastAdd, addCount, undoAdd } =
-    useDhikrStore();
+  const {
+    history,
+    todayTotal,
+    goal,
+    goals,
+    findDhikr,
+    suggested,
+    custom,
+    selected,
+    lastAdd,
+    addCount,
+    undoAdd,
+    saveGoal,
+    removeGoal,
+  } = useDhikrStore();
+  // A month or year review notification opens History on that period.
+  const { period } = useLocalSearchParams<{ period?: string }>();
   const [sharing, setSharing] = useState(false);
   const [adding, setAdding] = useState(false);
   const todayKey = dayKey();
@@ -118,6 +136,12 @@ export default function HistoryScreen() {
               </ThemedText>
             </View>
           </ThemedView>
+
+          {/* This month or this year */}
+          <ThemedText type="smallBold" themeColor="textSecondary" style={styles.sectionLabel}>
+            {t('overview')}
+          </ThemedText>
+          <PeriodReview key={period ?? 'now'} history={history} goal={goal} initial={period} titleOf={titleOf} />
 
           {/* This week */}
           <ThemedText type="smallBold" themeColor="textSecondary" style={styles.sectionLabel}>
@@ -228,6 +252,19 @@ export default function HistoryScreen() {
             <Button label={`+ ${t('addForDay')}`} onPress={() => setAdding(true)} />
           </ThemedView>
 
+          {/* Long-term goals */}
+          <ThemedText type="smallBold" themeColor="textSecondary" style={styles.sectionLabel}>
+            {t('personalGoals')}
+          </ThemedText>
+          <PersonalGoals
+            goals={goals}
+            history={history}
+            choices={choices}
+            titleOf={titleOf}
+            onSave={(input) => saveGoal(input)}
+            onRemove={removeGoal}
+          />
+
           {/* Most recited */}
           {ranked.length > 0 ? (
             <>
@@ -259,6 +296,12 @@ export default function HistoryScreen() {
             </>
           ) : null}
 
+          {/* Milestones */}
+          <ThemedText type="smallBold" themeColor="textSecondary" style={styles.sectionLabel}>
+            {t('badges')}
+          </ThemedText>
+          <Badges bestStreak={best} streak={streak} allTime={allTime} />
+
           {/* All time */}
           <View style={styles.stats}>
             <Stat label={t('allTime')} value={formatNumber(allTime)} />
@@ -269,7 +312,13 @@ export default function HistoryScreen() {
         <AdBanner />
       </SafeAreaView>
 
-      <ShareDialog visible={sharing} count={todayTotal} streak={streak} onClose={() => setSharing(false)} />
+      <ShareDialog
+        visible={sharing}
+        count={todayTotal}
+        streak={streak}
+        goalReached={goal !== null && todayTotal >= goal}
+        onClose={() => setSharing(false)}
+      />
       <AddCountDialog
         visible={adding}
         choices={choices}

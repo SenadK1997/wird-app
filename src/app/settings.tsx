@@ -10,7 +10,7 @@ import { Chip } from '@/components/chip';
 import { useConfirm } from '@/components/confirm-dialog';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { appStoreLink } from '@/constants/app-info';
+import { SUPPORT_URL } from '@/constants/app-info';
 import {
   AppFonts,
   Accents,
@@ -36,6 +36,7 @@ import { openRating, shareApp } from '@/utils/store';
 const GOAL_PRESETS = [100, 300, 500, 1000];
 const MINUTE_STEP = 5;
 const NUDGES_PER_DAY = [1, 2, 3];
+const JUMA_GOALS = [100, 300, 1000];
 
 const THEME_MODES: { mode: ThemeMode; label: UiKey }[] = [
   { mode: 'system', label: 'followPhone' },
@@ -53,7 +54,7 @@ export default function SettingsScreen() {
   const theme = useTheme();
   const scheme = useScheme();
   const confirm = useConfirm();
-  const { t, locale } = useI18n();
+  const { t, locale, formatNumber } = useI18n();
   const {
     language,
     themeMode,
@@ -64,6 +65,9 @@ export default function SettingsScreen() {
     reminders,
     dhikrRemindersEnabled,
     dhikrRemindersPerDay,
+    jumaEnabled,
+    jumaSalawatGoal,
+    reviewNotifications,
     hapticsEnabled,
     soundEnabled,
     keepAwake,
@@ -201,7 +205,8 @@ export default function SettingsScreen() {
 
   const handleShareApp = async () => {
     setShareStatus(null);
-    const result = await shareApp(t('shareAppText', { link: appStoreLink }).trim());
+    // The support page links to both stores, so it works whichever phone the friend has.
+    const result = await shareApp(t('shareAppText', { link: SUPPORT_URL }).trim());
     if (result === 'copied') setShareStatus(t('copied'));
     if (result === 'unavailable') setShareStatus(t('shareFailed'));
   };
@@ -355,8 +360,40 @@ export default function SettingsScreen() {
                   {nudgeError}
                 </ThemedText>
               ) : null}
+              <SwitchRow
+                label={t('reviewNotifications')}
+                hint={t('reviewNotificationsHint')}
+                value={reviewNotifications}
+                onValueChange={(enabled) => set({ reviewNotifications: enabled })}
+              />
             </Section>
           ) : null}
+
+          <Section title={t('juma')}>
+            <SwitchRow
+              label={t('jumaMode')}
+              hint={t(remindersSupported ? 'jumaHint' : 'jumaHintWeb')}
+              value={jumaEnabled}
+              onValueChange={(enabled) => set({ jumaEnabled: enabled })}
+            />
+            {jumaEnabled ? (
+              <>
+                <ThemedText type="small" themeColor="textSecondary">
+                  {t('jumaGoal')}
+                </ThemedText>
+                <View style={styles.chips}>
+                  {JUMA_GOALS.map((goal) => (
+                    <Chip
+                      key={goal}
+                      label={formatNumber(goal)}
+                      selected={jumaSalawatGoal === goal}
+                      onPress={() => set({ jumaSalawatGoal: goal })}
+                    />
+                  ))}
+                </View>
+              </>
+            ) : null}
+          </Section>
 
           <Section title={t('reminders')}>
             {remindersSupported ? (

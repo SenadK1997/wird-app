@@ -9,6 +9,7 @@ import { Chip } from '@/components/chip';
 import { useConfirm } from '@/components/confirm-dialog';
 import { DhikrForm, type DhikrFormValues } from '@/components/dhikr-form';
 import { FlowForm, type FlowFormValues } from '@/components/flow-form';
+import { JumaCard, SALAWAT_ID } from '@/components/juma-card';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { AppFonts, BottomTabInset, MaxContentWidth, Spacing, TopTabInset } from '@/constants/theme';
@@ -16,6 +17,8 @@ import { CATEGORY_IDS, FREE_COUNTER, type CategoryId, type Dhikr, type Flow } fr
 import { useTheme } from '@/hooks/use-theme';
 import { useI18n } from '@/i18n';
 import { useDhikrStore } from '@/store/dhikr-store';
+import { sharedFromDhikr, sharedFromFlow, shareUrl } from '@/utils/share-link';
+import { shareApp } from '@/utils/store';
 
 type Tab = CategoryId | 'favourites' | 'custom';
 
@@ -47,7 +50,7 @@ function fold(text: string) {
 export default function DhikrScreen() {
   const theme = useTheme();
   const confirm = useConfirm();
-  const { t, categoryLabel, flowTitle, formatNumber, meaning } = useI18n();
+  const { t, categoryLabel, flowTitle, formatNumber, meaning, dhikrTitle, dhikrText } = useI18n();
   const {
     suggested,
     custom,
@@ -116,6 +119,18 @@ export default function DhikrScreen() {
     });
   };
 
+  // A link that adds the dhikr or flow to someone else's app (see utils/share-link).
+  const handleShareDhikr = (dhikr: Dhikr) => {
+    shareApp(`${t('shareDhikrText', { title: dhikr.title })}
+${shareUrl(sharedFromDhikr(dhikr))}`);
+  };
+
+  const handleShareFlow = (flow: Flow) => {
+    const title = flowTitle(flow);
+    shareApp(`${t('shareFlowText', { title })}
+${shareUrl(sharedFromFlow(flow, title, findDhikr))}`);
+  };
+
   const handleDeleteFlow = (flow: Flow) => {
     confirm({
       title: t('deleteFlowTitle'),
@@ -137,7 +152,7 @@ export default function DhikrScreen() {
 
   const list = searching
     ? all.filter((d) =>
-        [d.title, d.transliteration, d.arabic, meaning(d.id)].some(
+        [d.title, d.transliteration, dhikrTitle(d), dhikrText(d), d.arabic, meaning(d.id)].some(
           (field) => field && fold(field).includes(search)
         )
       )
@@ -192,6 +207,13 @@ export default function DhikrScreen() {
 
           {searching ? null : (
             <>
+              <JumaCard
+                style={styles.padded}
+                onCount={() => {
+                  const salawat = findDhikr(SALAWAT_ID);
+                  if (salawat) handleSelect(salawat);
+                }}
+              />
               <View style={[styles.padded, styles.tiles]}>
                 <Tile
                   symbol="∞"
@@ -256,7 +278,15 @@ export default function DhikrScreen() {
                         )}
                       </Pressable>
                       {flow.builtIn ? null : (
-                        <View style={styles.rowActions}>
+                        <View style={[styles.rowActions, styles.flowActions]}>
+                          <Pressable
+                            onPress={() => handleShareFlow(flow)}
+                            accessibilityRole="button"
+                            hitSlop={Spacing.two}>
+                            <ThemedText type="smallBold" style={{ color: theme.accent }}>
+                              {t('shareLink')}
+                            </ThemedText>
+                          </Pressable>
                           <Pressable
                             onPress={() => openFlowForm(flow)}
                             accessibilityRole="button"
@@ -329,6 +359,7 @@ export default function DhikrScreen() {
                 onToggleFavourite={() => toggleFavorite(dhikr.id)}
                 onEdit={dhikr.builtIn ? undefined : () => openDhikrForm(dhikr)}
                 onDelete={dhikr.builtIn ? undefined : () => handleDeleteDhikr(dhikr)}
+                onShare={dhikr.builtIn ? undefined : () => handleShareDhikr(dhikr)}
               />
             ))}
 
@@ -396,6 +427,7 @@ type DhikrRowProps = {
   onToggleFavourite: () => void;
   onEdit?: () => void;
   onDelete?: () => void;
+  onShare?: () => void;
 };
 
 function DhikrRow({
@@ -406,9 +438,10 @@ function DhikrRow({
   onToggleFavourite,
   onEdit,
   onDelete,
+  onShare,
 }: DhikrRowProps) {
   const theme = useTheme();
-  const { t, meaning, formatNumber } = useI18n();
+  const { t, meaning, formatNumber, dhikrTitle } = useI18n();
   const stacked = (dhikr.arabic?.length ?? 0) > LONG_ARABIC;
   // Custom dhikr have no translation, so their own text is previewed in its place.
   const subtitle = meaning(dhikr.id) ?? (dhikr.builtIn ? undefined : dhikr.transliteration);
@@ -447,7 +480,7 @@ function DhikrRow({
           <View style={styles.rowText}>
             <View style={styles.titleLine}>
               <ThemedText type="smallBold" style={styles.title}>
-                {dhikr.title}
+                {dhikrTitle(dhikr)}
               </ThemedText>
               {selected ? (
                 <View style={[styles.badge, { backgroundColor: theme.accent }]}>
@@ -477,6 +510,13 @@ function DhikrRow({
 
       {onEdit && onDelete ? (
         <View style={styles.rowActions}>
+          {onShare ? (
+            <Pressable onPress={onShare} accessibilityRole="button" hitSlop={Spacing.two}>
+              <ThemedText type="smallBold" style={{ color: theme.accent }}>
+                {t('shareLink')}
+              </ThemedText>
+            </Pressable>
+          ) : null}
           <Pressable onPress={onEdit} accessibilityRole="button" hitSlop={Spacing.two}>
             <ThemedText type="smallBold" style={{ color: theme.accent }}>
               {t('edit')}
@@ -659,6 +699,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.four,
+  },
+  // Three links in a narrow flow card: closer together, wrapping if a language needs it.
+  flowActions: {
+    gap: Spacing.three,
+    flexWrap: 'wrap',
   },
   star: {
     fontSize: 22,

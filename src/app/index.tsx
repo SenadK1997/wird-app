@@ -10,6 +10,7 @@ import { useConfirm } from '@/components/confirm-dialog';
 import { ProgressBar } from '@/components/progress-bar';
 import { ProgressRing } from '@/components/progress-ring';
 import { ScrollArea } from '@/components/scroll-area';
+import { ShareDialog } from '@/components/share-dialog';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { AppFonts, BottomTabInset, MaxContentWidth, Spacing, TopTabInset } from '@/constants/theme';
@@ -17,7 +18,7 @@ import { useRatingPrompt } from '@/hooks/use-rating-prompt';
 import { useTapSound } from '@/hooks/use-tap-sound';
 import { useTheme } from '@/hooks/use-theme';
 import { useI18n } from '@/i18n';
-import { useDhikrStore } from '@/store/dhikr-store';
+import { currentStreak, useDhikrStore } from '@/store/dhikr-store';
 
 const KEEP_AWAKE_TAG = 'counter';
 /** Arabic longer than this is a full dua rather than a short phrase, and gets smaller type. */
@@ -31,7 +32,7 @@ export default function CounterScreen() {
   const theme = useTheme();
   const confirm = useConfirm();
   const playTap = useTapSound();
-  const { t, meaning, flowTitle, dhikrTitle } = useI18n();
+  const { t, meaning, flowTitle, dhikrTitle, dhikrText } = useI18n();
   const {
     selected,
     count,
@@ -43,6 +44,7 @@ export default function CounterScreen() {
     soundEnabled,
     keepAwake,
     display,
+    history,
     increment,
     undo,
     addCount,
@@ -50,6 +52,7 @@ export default function CounterScreen() {
     exitFlow,
   } = useDhikrStore();
   const [addVisible, setAddVisible] = useState(false);
+  const [sharing, setSharing] = useState(false);
   const { width, height } = useWindowDimensions();
   const ringSize = Math.max(180, Math.min(width - Spacing.six * 2, height * 0.34, 320));
 
@@ -88,9 +91,10 @@ export default function CounterScreen() {
   const shown = !endless && count > 0 && inRound === 0 ? target : inRound;
   const title = dhikrTitle(selected);
 
+  const text = dhikrText(selected);
   const arabicLength = selected.arabic?.length ?? 0;
   const long =
-    arabicLength > LONG_ARABIC || (selected.transliteration?.length ?? 0) > LONG_TEXT;
+    arabicLength > LONG_ARABIC || text.length > LONG_TEXT;
   const arabicStyle =
     arabicLength > VERY_LONG_ARABIC ? styles.arabicVeryLong : long ? styles.arabicLong : styles.arabic;
   const translation = meaning(selected.id);
@@ -150,7 +154,7 @@ export default function CounterScreen() {
             <ThemedText
               type={long ? 'smallBold' : 'subtitle'}
               style={long ? styles.centered : styles.title}>
-              {selected.transliteration ?? selected.title}
+              {text}
             </ThemedText>
           ) : null}
           {display.translation && translation ? (
@@ -208,6 +212,14 @@ export default function CounterScreen() {
                   goal,
                 })}
               </ThemedText>
+              {todayTotal >= goal ? (
+                // Finished today's wird: offer the card to share, without interrupting the counting.
+                <Pressable onPress={() => setSharing(true)} accessibilityRole="button" hitSlop={Spacing.two}>
+                  <ThemedText type="smallBold" style={{ color: theme.accent }}>
+                    {t('shareFinished')}
+                  </ThemedText>
+                </Pressable>
+              ) : null}
             </View>
           ) : null}
         </View>
@@ -238,6 +250,13 @@ export default function CounterScreen() {
           }
         }}
         onClose={() => setAddVisible(false)}
+      />
+      <ShareDialog
+        visible={sharing}
+        count={todayTotal}
+        streak={currentStreak(history)}
+        goalReached={goal !== null && todayTotal >= goal}
+        onClose={() => setSharing(false)}
       />
     </ThemedView>
   );

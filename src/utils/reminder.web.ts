@@ -6,6 +6,15 @@ export const remindersSupported = false;
 
 export type NudgeItem = { body: string; dhikrId: string | null; salawat: boolean };
 
+export type NotificationTarget = { dhikrId: string } | { open: 'history'; period: string };
+
+export type ExtraNotification = {
+  date: Date;
+  title: string;
+  body: string;
+  data: NotificationTarget;
+};
+
 export type NotificationConfig = {
   reminders: Reminder[];
   reminderText: { title: string; body: string };
@@ -13,6 +22,7 @@ export type NotificationConfig = {
   nudgesEnabled: boolean;
   nudgesPerDay: number;
   nudges: NudgeItem[];
+  extras: ExtraNotification[];
   ask: boolean;
 };
 
@@ -20,6 +30,6 @@ export async function syncNotifications(_cfg: NotificationConfig) {
   return true;
 }
 
-export function onNotificationTap(_handler: (dhikrId: string) => void) {
+export function onNotificationTap(_handler: (target: NotificationTarget) => void) {
   return { remove() {} };
 }
