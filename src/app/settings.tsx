@@ -11,6 +11,7 @@ import { useConfirm } from '@/components/confirm-dialog';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { SUPPORT_URL } from '@/constants/app-info';
+import { ThemeGallery } from '@/components/theme-gallery';
 import {
   AppFonts,
   Accents,
@@ -59,6 +60,7 @@ export default function SettingsScreen() {
     language,
     themeMode,
     accent,
+    themePack,
     display,
     dailyGoalEnabled,
     dailyGoal,
@@ -68,6 +70,7 @@ export default function SettingsScreen() {
     jumaEnabled,
     jumaSalawatGoal,
     reviewNotifications,
+    streakReminder,
     hapticsEnabled,
     soundEnabled,
     keepAwake,
@@ -217,25 +220,13 @@ export default function SettingsScreen() {
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
           <ThemedText type="subtitle">{t('tabSettings')}</ThemedText>
 
-          <Section title={t('language')}>
-            <View style={styles.chips}>
-              <Chip
-                label={t('followPhone')}
-                selected={language === 'system'}
-                onPress={() => set({ language: 'system' })}
-              />
-              {LANGUAGES.map((option) => (
-                <Chip
-                  key={option.code}
-                  label={option.name}
-                  selected={language === option.code}
-                  onPress={() => set({ language: option.code })}
-                />
-              ))}
-            </View>
-          </Section>
-
-          <Section title={t('appearance')}>
+          <Section title={t('appearance')} defaultOpen>
+            <ThemedText type="small" themeColor="textSecondary">
+              {t('themesHint')}
+            </ThemedText>
+            <ThemeGallery />
+            {themePack === null ? (
+              <>
             <ThemedText type="smallBold">{t('theme')}</ThemedText>
             <View style={styles.chips}>
               {THEME_MODES.map(({ mode, label }) => (
@@ -265,6 +256,26 @@ export default function SettingsScreen() {
                     ]}
                   />
                 </Pressable>
+              ))}
+            </View>
+              </>
+            ) : null}
+          </Section>
+
+          <Section title={t('language')}>
+            <View style={styles.chips}>
+              <Chip
+                label={t('followPhone')}
+                selected={language === 'system'}
+                onPress={() => set({ language: 'system' })}
+              />
+              {LANGUAGES.map((option) => (
+                <Chip
+                  key={option.code}
+                  label={option.name}
+                  selected={language === option.code}
+                  onPress={() => set({ language: option.code })}
+                />
               ))}
             </View>
           </Section>
@@ -365,6 +376,12 @@ export default function SettingsScreen() {
                 hint={t('reviewNotificationsHint')}
                 value={reviewNotifications}
                 onValueChange={(enabled) => set({ reviewNotifications: enabled })}
+              />
+              <SwitchRow
+                label={t('streakReminderSetting')}
+                hint={t('streakReminderHint')}
+                value={streakReminder}
+                onValueChange={(enabled) => set({ streakReminder: enabled })}
               />
             </Section>
           ) : null}
@@ -504,16 +521,33 @@ export default function SettingsScreen() {
   );
 }
 
-function Section({ title, children }: { title: string; children: ReactNode }) {
+/** A group of settings that opens and closes, so the page stays short. */
+function Section({
+  title,
+  children,
+  defaultOpen = false,
+}: {
+  title: string;
+  children: ReactNode;
+  defaultOpen?: boolean;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
   return (
-    <>
-      <ThemedText type="smallBold" themeColor="textSecondary" style={styles.sectionLabel}>
-        {title}
-      </ThemedText>
-      <ThemedView type="backgroundElement" style={styles.card}>
-        {children}
-      </ThemedView>
-    </>
+    <ThemedView type="backgroundElement" style={styles.section}>
+      <Pressable
+        onPress={() => setOpen(!open)}
+        accessibilityRole="button"
+        accessibilityState={{ expanded: open }}
+        style={({ pressed }) => [styles.sectionHeader, pressed && styles.pressed]}>
+        <ThemedText type="smallBold" style={styles.sectionTitle}>
+          {title}
+        </ThemedText>
+        <ThemedText themeColor="textSecondary" style={styles.chevron}>
+          {open ? '▴' : '▾'}
+        </ThemedText>
+      </Pressable>
+      {open ? <View style={styles.sectionBody}>{children}</View> : null}
+    </ThemedView>
   );
 }
 
@@ -579,13 +613,28 @@ const styles = StyleSheet.create({
     paddingBottom: BottomTabInset + Spacing.four,
     gap: Spacing.two,
   },
-  sectionLabel: {
-    textTransform: 'uppercase',
-    marginTop: Spacing.three,
-  },
-  card: {
+  section: {
     borderRadius: Spacing.three,
-    padding: Spacing.three,
+    overflow: 'hidden',
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.two,
+    paddingVertical: Spacing.three,
+    paddingHorizontal: Spacing.three,
+  },
+  sectionTitle: {
+    flex: 1,
+    fontSize: 16,
+  },
+  chevron: {
+    fontSize: 18,
+    lineHeight: 22,
+  },
+  sectionBody: {
+    paddingHorizontal: Spacing.three,
+    paddingBottom: Spacing.three,
     gap: Spacing.three,
   },
   chips: {

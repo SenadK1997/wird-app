@@ -66,7 +66,7 @@ export const REMINDERS: Reminder[] = [
     text: {
       ar: 'أَلَا بِذِكْرِ ٱللَّهِ تَطْمَئِنُّ ٱلْقُلُوبُ',
       en: 'In the remembrance of Allah hearts find rest.',
-      bs: 'Zar se srca ne smiruju spominjanjem Allaha?',
+      bs: 'Zaista, srca se smiruju kad se Allah spomene.',
       tr: 'Kalpler ancak Allah’ı anmakla huzur bulur.',
       id: 'Ingatlah, hanya dengan mengingat Allah hati menjadi tenteram.',
       ms: 'Ketahuilah, dengan mengingati Allah hati menjadi tenang.',

@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createContext, use, useEffect, useReducer, useState, type ReactNode } from 'react';
 
-import { Accents, type AccentId, type ThemeMode } from '@/constants/theme';
+import { Accents, THEME_PACKS, type AccentId, type ThemeMode, type ThemePackId } from '@/constants/theme';
 import {
   BUILT_IN_FLOWS,
   FREE_COUNTER,
@@ -56,6 +56,10 @@ type Settings = {
   notificationsAskedVersion: string | null;
   themeMode: ThemeMode;
   accent: AccentId;
+  /** A theme from THEME_PACKS in use, or `null` for the classic look (themeMode + accent). */
+  themePack: ThemePackId | null;
+  /** Themes unlocked with a rewarded ad. They stay unlocked for good. */
+  unlockedThemes: ThemePackId[];
   language: LanguageSetting;
   /** False until the welcome screen has been completed once. */
   onboarded: boolean;
@@ -71,6 +75,8 @@ type Settings = {
   jumaSalawatGoal: number;
   /** A notification when a month and a year are over, to look back at them in History. */
   reviewNotifications: boolean;
+  /** A notification at 21:00 on a day without dhikr, while there is a streak to keep. */
+  streakReminder: boolean;
 };
 
 type State = Settings & {
@@ -91,6 +97,15 @@ type State = Settings & {
    */
   lastAdd: { id: string; day: string; amount: number; toCounter: boolean } | null;
   goals: PersonalGoal[];
+  /**
+   * Streak freezes saved up (at most MAX_FREEZES). One is earned for every 7 days in a row and
+   * used by itself on a missed day, so one busy day does not end a long streak.
+   */
+  streakFreezes: number;
+  /** Days (`YYYY-MM-DD`) a freeze covered. They keep a streak going but do not add to it. */
+  frozenDays: string[];
+  /** Day a freeze was last earned, so the 7th day earns only one. */
+  freezeAwardedOn: string | null;
 };
 
 type Action =
@@ -109,6 +124,9 @@ type Action =
   | { type: 'saveFlow'; flow: Flow }
   | { type: 'removeFlow'; id: string }
   | { type: 'toggleFavorite'; id: string }
+  | { type: 'spendFreezes'; days: string[] }
+  | { type: 'awardFreeze'; day: string }
+  | { type: 'refundFreezes'; days: string[] }
   | { type: 'saveGoal'; goal: PersonalGoal }
   | { type: 'removeGoal'; id: string }
   | { type: 'set'; patch: Partial<Settings> };
@@ -123,6 +141,9 @@ const initialState: State = {
   sequence: null,
   lastAdd: null,
   goals: [],
+  streakFreezes: 0,
+  frozenDays: [],
+  freezeAwardedOn: null,
   hapticsEnabled: true,
   soundEnabled: false,
   keepAwake: true,
@@ -135,6 +156,8 @@ const initialState: State = {
   notificationsAskedVersion: null,
   themeMode: 'dark',
   accent: 'gold',
+  themePack: null,
+  unlockedThemes: [],
   themeVersion: THEME_VERSION,
   language: 'system',
   onboarded: false,
@@ -144,6 +167,7 @@ const initialState: State = {
   jumaEnabled: true,
   jumaSalawatGoal: 100,
   reviewNotifications: true,
+  streakReminder: true,
 };
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -161,6 +185,23 @@ function normalize(saved: unknown): State | null {
   }
   delete state.reminder;
   if (!Array.isArray(saved.goals)) state.goals = [];
+  state.frozenDays = Array.isArray(saved.frozenDays)
+    ? saved.frozenDays.filter((day): day is string => typeof day === 'string')
+    : [];
+  state.streakFreezes =
+    typeof saved.streakFreezes === 'number' && Number.isFinite(saved.streakFreezes)
+      ? Math.min(MAX_FREEZES, Math.max(0, Math.floor(saved.streakFreezes)))
+      : 0;
+  if (typeof saved.freezeAwardedOn !== 'string') state.freezeAwardedOn = null;
+  // Own keys only: `in` would also accept names like "constructor" from a damaged backup.
+  state.unlockedThemes = Array.isArray(saved.unlockedThemes)
+    ? saved.unlockedThemes.filter(
+        (id): id is ThemePackId =>
+          typeof id === 'string' && Object.prototype.hasOwnProperty.call(THEME_PACKS, id)
+      )
+    : [];
+  // A theme that is gone or was never unlocked falls back to the classic look.
+  if (state.themePack && !state.unlockedThemes.includes(state.themePack)) state.themePack = null;
   // Settings saved under the earlier cream-and-green look start out in the new one.
   if (saved.themeVersion !== THEME_VERSION || !(state.accent in Accents)) {
     state.themeMode = 'dark';
@@ -335,6 +376,25 @@ function reducer(current: State, action: Action): State {
           ? state.favorites.filter((id) => id !== action.id)
           : [...state.favorites, action.id],
       };
+    case 'spendFreezes':
+      return {
+        ...state,
+        streakFreezes: Math.max(0, state.streakFreezes - action.days.length),
+        // Kept for good: a past best streak may run across them (one per missed day, so few).
+        frozenDays: [...state.frozenDays, ...action.days],
+      };
+    case 'refundFreezes':
+      return {
+        ...state,
+        frozenDays: state.frozenDays.filter((day) => !action.days.includes(day)),
+        streakFreezes: Math.min(MAX_FREEZES, state.streakFreezes + action.days.length),
+      };
+    case 'awardFreeze':
+      return {
+        ...state,
+        streakFreezes: Math.min(MAX_FREEZES, state.streakFreezes + 1),
+        freezeAwardedOn: action.day,
+      };
     case 'saveGoal': {
       const exists = state.goals.some((goal) => goal.id === action.goal.id);
       return {
@@ -398,6 +458,14 @@ type Store = Settings & {
   removeFlow: (id: string) => void;
   toggleFavorite: (id: string) => void;
   goals: PersonalGoal[];
+  streakFreezes: number;
+  frozenDays: string[];
+  freezeAwardedOn: string | null;
+  /** Covers missed days with saved freezes (see StreakKeeper). */
+  spendFreezes: (days: string[]) => void;
+  awardFreeze: (day: string) => void;
+  /** Gives back freezes spent on days that turned out to have dhikr (added later by hand). */
+  refundFreezes: (days: string[]) => void;
   /** Creates a personal goal, or replaces the one with the given id. */
   saveGoal: (input: Omit<PersonalGoal, 'id'>, id?: string) => void;
   removeGoal: (id: string) => void;
@@ -502,6 +570,9 @@ export function DhikrStoreProvider({ children }: { children: ReactNode }) {
     },
     removeFlow: (id) => dispatch({ type: 'removeFlow', id }),
     toggleFavorite: (id) => dispatch({ type: 'toggleFavorite', id }),
+    spendFreezes: (days) => dispatch({ type: 'spendFreezes', days }),
+    awardFreeze: (day) => dispatch({ type: 'awardFreeze', day }),
+    refundFreezes: (days) => dispatch({ type: 'refundFreezes', days }),
     saveGoal: (input, id) => dispatch({ type: 'saveGoal', goal: { ...input, id: id ?? newId('goal') } }),
     removeGoal: (id) => dispatch({ type: 'removeGoal', id }),
     set: (patch) => dispatch({ type: 'set', patch }),
@@ -533,23 +604,30 @@ export function dayTotal(totals: DayTotals | undefined) {
   return Object.values(totals ?? {}).reduce((sum, n) => sum + n, 0);
 }
 
-/** Consecutive days with at least one dhikr, ending today (or yesterday if today is still empty). */
-export function currentStreak(history: History) {
+/** Most freezes that can be saved up. */
+export const MAX_FREEZES = 2;
+
+/**
+ * Consecutive days with at least one dhikr, ending today (or yesterday if today is still empty).
+ * A frozen day keeps the run going without adding to it.
+ */
+export function currentStreak(history: History, frozen: string[] = []) {
   const day = new Date();
   if (dayTotal(history[dayKey(day)]) === 0) day.setDate(day.getDate() - 1);
   let streak = 0;
-  while (dayTotal(history[dayKey(day)]) > 0) {
-    streak++;
+  for (;;) {
+    const key = dayKey(day);
+    if (dayTotal(history[key]) > 0) streak++;
+    else if (!frozen.includes(key)) break;
     day.setDate(day.getDate() - 1);
   }
   return streak;
 }
 
-/** The longest run of consecutive days with at least one dhikr. */
-export function bestStreak(history: History) {
-  const days = Object.keys(history)
-    .filter((key) => dayTotal(history[key]) > 0)
-    .sort();
+/** The longest run of consecutive days with at least one dhikr; frozen days bridge a run. */
+export function bestStreak(history: History, frozen: string[] = []) {
+  const real = new Set(Object.keys(history).filter((key) => dayTotal(history[key]) > 0));
+  const days = [...new Set([...real, ...frozen])].sort();
   let best = 0;
   let run = 0;
   let previous: Date | null = null;
@@ -557,7 +635,8 @@ export function bestStreak(history: History) {
     const [year, month, date] = key.split('-').map(Number);
     const current = new Date(year, month - 1, date);
     const expected = previous && new Date(previous.getFullYear(), previous.getMonth(), previous.getDate() + 1);
-    run = expected && dayKey(expected) === key ? run + 1 : 1;
+    const counts = real.has(key) ? 1 : 0;
+    run = expected && dayKey(expected) === key ? run + counts : counts;
     best = Math.max(best, run);
     previous = current;
   }

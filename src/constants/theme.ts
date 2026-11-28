@@ -59,6 +59,136 @@ export const Accents = {
 export type AccentId = keyof typeof Accents;
 export type ThemeMode = 'system' | 'light' | 'dark';
 
+export type Palette = { [K in keyof typeof Colors.dark]: string };
+
+/** The background drawing a theme puts behind the counter (see components/theme-pattern). */
+export type PatternId = 'diamonds' | 'stars' | 'dunes' | 'petals' | 'lattice' | 'marble' | 'zellige';
+
+/**
+ * Themes unlocked with one rewarded ad, each its own full look: colours, light or dark, and a
+ * background pattern. Ids are saved on the phone, so never rename one.
+ */
+export const THEME_PACKS = {
+  kiswa: {
+    scheme: 'dark',
+    pattern: 'diamonds',
+    patternColor: '#C9A24A',
+    colors: {
+      text: '#EDE3C8',
+      background: '#0B0B0C',
+      backgroundElement: '#17150F',
+      backgroundSelected: '#241F15',
+      textSecondary: '#B9AE93',
+      border: '#2E2819',
+      accent: '#D4AF37',
+      onAccent: '#0B0B0C',
+      danger: '#F0907F',
+    },
+  },
+  madinah: {
+    scheme: 'dark',
+    pattern: 'petals',
+    patternColor: '#D8C38A',
+    colors: {
+      text: '#EEF3E8',
+      background: '#123528',
+      backgroundElement: '#1A4434',
+      backgroundSelected: '#23553F',
+      textSecondary: '#B5C7B8',
+      border: '#2A5544',
+      accent: '#D8C38A',
+      onAccent: '#123528',
+      danger: '#F0A090',
+    },
+  },
+  midnight: {
+    scheme: 'dark',
+    pattern: 'stars',
+    patternColor: '#C9D6F2',
+    colors: {
+      text: '#E6ECF8',
+      background: '#0A1630',
+      backgroundElement: '#13234A',
+      backgroundSelected: '#1C2F5E',
+      textSecondary: '#9FB0D3',
+      border: '#22355F',
+      accent: '#9DB8FF',
+      onAccent: '#0A1630',
+      danger: '#FF9C8F',
+    },
+  },
+  fanous: {
+    scheme: 'dark',
+    pattern: 'lattice',
+    patternColor: '#E8A15A',
+    colors: {
+      text: '#F5E6D3',
+      background: '#2A1712',
+      backgroundElement: '#3A2219',
+      backgroundSelected: '#4A2E22',
+      textSecondary: '#CDB39A',
+      border: '#4F3226',
+      accent: '#F0B46A',
+      onAccent: '#2A1712',
+      danger: '#FF9E8A',
+    },
+  },
+  sand: {
+    scheme: 'light',
+    pattern: 'dunes',
+    patternColor: '#B5562E',
+    colors: {
+      text: '#3B2416',
+      background: '#F3E7D3',
+      backgroundElement: '#EADBC2',
+      backgroundSelected: '#E0CDAE',
+      textSecondary: '#7A5A44',
+      border: '#D9C4A3',
+      accent: '#A64C26',
+      onAccent: '#FFFFFF',
+      danger: '#A8321F',
+    },
+  },
+  marble: {
+    scheme: 'light',
+    pattern: 'marble',
+    patternColor: '#9C9384',
+    colors: {
+      text: '#2E2A24',
+      background: '#FAF8F3',
+      backgroundElement: '#F0EBE1',
+      backgroundSelected: '#E5DECF',
+      textSecondary: '#6E665A',
+      border: '#DED6C6',
+      accent: '#8F7128',
+      onAccent: '#FFFFFF',
+      danger: '#A8321F',
+    },
+  },
+  andalus: {
+    scheme: 'light',
+    pattern: 'zellige',
+    patternColor: '#1F7A72',
+    colors: {
+      text: '#123B3A',
+      background: '#F2F1EA',
+      backgroundElement: '#E5EAE4',
+      backgroundSelected: '#D6E0D9',
+      textSecondary: '#4F6E6A',
+      border: '#CBD8D1',
+      accent: '#1F7A72',
+      onAccent: '#FFFFFF',
+      danger: '#A8321F',
+    },
+  },
+} as const satisfies Record<
+  string,
+  { scheme: 'light' | 'dark'; pattern: PatternId; patternColor: string; colors: Palette }
+>;
+
+export type ThemePackId = keyof typeof THEME_PACKS;
+export const THEME_PACK_IDS = Object.keys(THEME_PACKS) as ThemePackId[];
+
 /**
  * The app's typefaces, by the names they are loaded under in the root layout. Each weight is its
  * own font file, so text picks a family here instead of setting `fontWeight`.

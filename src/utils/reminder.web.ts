@@ -6,7 +6,10 @@ export const remindersSupported = false;
 
 export type NudgeItem = { body: string; dhikrId: string | null; salawat: boolean };
 
-export type NotificationTarget = { dhikrId: string } | { open: 'history'; period: string };
+export type NotificationTarget =
+  | { dhikrId: string }
+  | { open: 'history'; period: string }
+  | { open: 'counter' };
 
 export type ExtraNotification = {
   date: Date;

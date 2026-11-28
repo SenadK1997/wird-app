@@ -2,7 +2,7 @@ import * as Haptics from 'expo-haptics';
 import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
+import { Animated, Easing, Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AddCountDialog } from '@/components/add-count-dialog';
@@ -11,9 +11,11 @@ import { ProgressBar } from '@/components/progress-bar';
 import { ProgressRing } from '@/components/progress-ring';
 import { ScrollArea } from '@/components/scroll-area';
 import { ShareDialog } from '@/components/share-dialog';
+import { ThemePattern } from '@/components/theme-pattern';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { AppFonts, BottomTabInset, MaxContentWidth, Spacing, TopTabInset } from '@/constants/theme';
+import { FREE_COUNTER_ID } from '@/data/dhikr';
 import { useRatingPrompt } from '@/hooks/use-rating-prompt';
 import { useTapSound } from '@/hooks/use-tap-sound';
 import { useTheme } from '@/hooks/use-theme';
@@ -45,12 +47,18 @@ export default function CounterScreen() {
     keepAwake,
     display,
     history,
+    frozenDays,
+    themePack,
     increment,
     undo,
     addCount,
     reset,
     exitFlow,
+    findDhikr,
   } = useDhikrStore();
+  // The ring gives a small press on every tap and glows once when a round is complete.
+  const [press] = useState(() => new Animated.Value(1));
+  const [glow] = useState(() => new Animated.Value(0));
   const [addVisible, setAddVisible] = useState(false);
   const [sharing, setSharing] = useState(false);
   const { width, height } = useWindowDimensions();
@@ -92,20 +100,42 @@ export default function CounterScreen() {
   const title = dhikrTitle(selected);
 
   const text = dhikrText(selected);
+  const translation = meaning(selected.id);
+  const showArabic = display.arabic && !!selected.arabic;
+  const showTranslation = display.translation && !!translation;
+  // The Latin text is shown once: when its line is on, or when none of this dhikr's words would
+  // be visible otherwise (a custom dhikr written only in Latin letters has no Arabic and no
+  // translation). Every line switched off still gives the plain counter.
+  const anyLineOn = display.arabic || display.transliteration || display.translation;
+  const showText =
+    selected.id !== FREE_COUNTER_ID &&
+    (display.transliteration || (anyLineOn && !showArabic && !showTranslation));
   const arabicLength = selected.arabic?.length ?? 0;
   const long =
     arabicLength > LONG_ARABIC || text.length > LONG_TEXT;
   const arabicStyle =
     arabicLength > VERY_LONG_ARABIC ? styles.arabicVeryLong : long ? styles.arabicLong : styles.arabic;
-  const translation = meaning(selected.id);
   const flowName = activeFlow ? flowTitle(activeFlow.flow) : '';
+  // In a flow, the dhikr that comes after this one (activeFlow.step counts from 1).
+  const nextStep = activeFlow ? activeFlow.flow.steps[activeFlow.step] : undefined;
+  const nextDhikr = nextStep ? findDhikr(nextStep.dhikrId) : undefined;
+  const upNext = nextStep && nextDhikr ? { dhikr: nextDhikr, target: nextStep.target } : null;
 
   const handleTap = () => {
     if (activeFlow?.done) return;
     increment();
     if (soundEnabled) playTap();
-    if (!hapticsEnabled) return;
     const completesRound = !endless && (count + 1) % target === 0;
+    press.setValue(0.965);
+    Animated.spring(press, { toValue: 1, friction: 4, tension: 220, useNativeDriver: true }).start();
+    if (completesRound) {
+      glow.setValue(0);
+      Animated.sequence([
+        Animated.timing(glow, { toValue: 1, duration: 160, useNativeDriver: true }),
+        Animated.timing(glow, { toValue: 0, duration: 900, easing: Easing.out(Easing.quad), useNativeDriver: true }),
+      ]).start();
+    }
+    if (!hapticsEnabled) return;
     const feedback = completesRound
       ? Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
       : Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -135,6 +165,7 @@ export default function CounterScreen() {
 
   return (
     <ThemedView style={styles.container}>
+      {themePack ? <ThemePattern pack={themePack} /> : null}
       <SafeAreaView style={styles.safeArea}>
         {activeFlow ? (
           <View style={[styles.badge, { backgroundColor: theme.accent }]}>
@@ -147,17 +178,17 @@ export default function CounterScreen() {
         {/* Scrolls when a long dua does not fit, so the ring always stays on screen. Keyed so each
             dhikr starts at the top. */}
         <ScrollArea key={selected.id} style={styles.header} contentContainerStyle={styles.headerContent}>
-          {display.arabic && selected.arabic ? (
+          {showArabic ? (
             <ThemedText style={arabicStyle}>{selected.arabic}</ThemedText>
           ) : null}
-          {display.transliteration && !endless ? (
+          {showText ? (
             <ThemedText
               type={long ? 'smallBold' : 'subtitle'}
               style={long ? styles.centered : styles.title}>
               {text}
             </ThemedText>
           ) : null}
-          {display.translation && translation ? (
+          {showTranslation ? (
             <ThemedText
               type={long ? 'small' : 'default'}
               themeColor="textSecondary"
@@ -177,7 +208,23 @@ export default function CounterScreen() {
           accessibilityRole="button"
           accessibilityLabel={t('countLabel', { title })}
           accessibilityValue={{ text: endless ? String(shown) : `${shown} / ${target}` }}
-          style={({ pressed }) => pressed && styles.ringPressed}>
+          style={styles.ringPress}>
+          {/* A soft light behind the ring when a round is complete. */}
+          <Animated.View
+            pointerEvents="none"
+            style={[
+              styles.glow,
+              {
+                width: ringSize + Spacing.five,
+                height: ringSize + Spacing.five,
+                borderRadius: (ringSize + Spacing.five) / 2,
+                backgroundColor: theme.accent,
+                opacity: glow.interpolate({ inputRange: [0, 1], outputRange: [0, 0.32] }),
+                transform: [{ scale: glow.interpolate({ inputRange: [0, 1], outputRange: [0.9, 1.06] }) }],
+              },
+            ]}
+          />
+          <Animated.View style={{ transform: [{ scale: press }] }}>
           <ProgressRing size={ringSize} progress={endless ? 0 : shown / target}>
             <ThemedText
               style={[styles.count, shown > 99999 ? styles.countSmall : shown > 9999 && styles.countMedium]}>
@@ -187,6 +234,7 @@ export default function CounterScreen() {
               <ThemedText themeColor="textSecondary">{t('ofTarget', { n: target })}</ThemedText>
             )}
           </ProgressRing>
+          </Animated.View>
         </Pressable>
 
         <View style={styles.status}>
@@ -195,7 +243,9 @@ export default function CounterScreen() {
               {activeFlow
                 ? activeFlow.done
                   ? t('flowDone', { title: flowName })
-                  : t('flowNext')
+                  : upNext
+                    ? t('flowUpNext', { title: dhikrTitle(upNext.dhikr), n: upNext.target })
+                    : t('flowLast')
                 : t('rounds', { n: rounds })}
             </ThemedText>
           )}
@@ -254,7 +304,7 @@ export default function CounterScreen() {
       <ShareDialog
         visible={sharing}
         count={todayTotal}
-        streak={currentStreak(history)}
+        streak={currentStreak(history, frozenDays)}
         goalReached={goal !== null && todayTotal >= goal}
         onClose={() => setSharing(false)}
       />
@@ -352,8 +402,12 @@ const styles = StyleSheet.create({
     fontSize: 44,
     lineHeight: 52,
   },
-  ringPressed: {
-    transform: [{ scale: 0.97 }],
+  ringPress: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  glow: {
+    position: 'absolute',
   },
   status: {
     alignSelf: 'stretch',

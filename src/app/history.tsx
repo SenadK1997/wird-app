@@ -7,6 +7,7 @@ import { AdBanner } from '@/components/ad-banner';
 import { AddCountDialog } from '@/components/add-count-dialog';
 import { Badges } from '@/components/badges';
 import { Button } from '@/components/button';
+import { Chip } from '@/components/chip';
 import { MonthCalendar } from '@/components/month-calendar';
 import { PeriodReview } from '@/components/period-review';
 import { PersonalGoals } from '@/components/personal-goals';
@@ -19,8 +20,17 @@ import { FREE_COUNTER, type Dhikr } from '@/data/dhikr';
 import { useRatingPrompt } from '@/hooks/use-rating-prompt';
 import { useTheme } from '@/hooks/use-theme';
 import { useI18n } from '@/i18n';
+import type { UiKey } from '@/i18n/en';
 import { bestStreak, currentStreak, dayTotal, useDhikrStore, type History } from '@/store/dhikr-store';
-import { dayKey, formatDay, lastDays } from '@/utils/date';
+import { dayKey, dayKeyDaysAgo, formatDay, lastDays } from '@/utils/date';
+
+type HistoryView = 'today' | 'overview' | 'goals';
+
+const VIEWS: { id: HistoryView; label: UiKey }[] = [
+  { id: 'today', label: 'historyToday' },
+  { id: 'overview', label: 'historyOverview' },
+  { id: 'goals', label: 'historyGoals' },
+];
 
 /** How many dhikr the "Most recited" list shows. */
 const TOP_COUNT = 5;
@@ -54,9 +64,18 @@ export default function HistoryScreen() {
     undoAdd,
     saveGoal,
     removeGoal,
+    frozenDays,
+    streakFreezes,
   } = useDhikrStore();
   // A month or year review notification opens History on that period.
   const { period } = useLocalSearchParams<{ period?: string }>();
+  const [view, setView] = useState<HistoryView>(period ? 'overview' : 'today');
+  // A review notification tapped while History is already open switches to the overview too.
+  const [seenPeriod, setSeenPeriod] = useState(period);
+  if (period !== seenPeriod) {
+    setSeenPeriod(period);
+    if (period) setView('overview');
+  }
   const [sharing, setSharing] = useState(false);
   const [adding, setAdding] = useState(false);
   const todayKey = dayKey();
@@ -70,8 +89,10 @@ export default function HistoryScreen() {
     }, [askForRating])
   );
 
-  const streak = currentStreak(history);
-  const best = bestStreak(history);
+  const streak = currentStreak(history, frozenDays);
+  const best = bestStreak(history, frozenDays);
+  // A freeze that kept the streak in the last two days is worth telling about.
+  const recentFreeze = [dayKeyDaysAgo(1), dayKeyDaysAgo(2)].find((key) => frozenDays.includes(key));
   const ranked = totalsById(history);
   const allTime = ranked.reduce((sum, [, taps]) => sum + taps, 0);
   const titleOf = (id: string) => dhikrTitle(findDhikr(id) ?? { id, title: t('deletedDhikr') });
@@ -107,207 +128,236 @@ export default function HistoryScreen() {
         <ScrollView contentContainerStyle={styles.content}>
           <ThemedText type="subtitle">{t('tabHistory')}</ThemedText>
 
-          {/* Today at a glance */}
-          <ThemedView type="backgroundElement" style={[styles.card, styles.today]}>
-            {goal !== null ? (
-              <ProgressRing size={92} strokeWidth={9} progress={todayTotal / goal}>
-                <ThemedText style={styles.ringText}>
-                  {formatNumber(Math.min(100, Math.floor((todayTotal / goal) * 100)))}%
-                </ThemedText>
-              </ProgressRing>
-            ) : null}
-            <View style={styles.todayText}>
-              <View style={styles.todayLine}>
-                <ThemedText style={styles.big}>{formatNumber(todayTotal)}</ThemedText>
-                <ThemedText themeColor="textSecondary">{t('today')}</ThemedText>
-              </View>
-              {goal !== null ? (
-                <ThemedText
-                  type="smallBold"
-                  style={todayTotal >= goal ? { color: theme.accent } : undefined}
-                  themeColor={todayTotal >= goal ? undefined : 'textSecondary'}>
-                  {todayTotal >= goal
-                    ? t('dailyGoalReached')
-                    : t('countOfGoal', { count: todayTotal, goal })}
-                </ThemedText>
-              ) : null}
-              <ThemedText type="small" themeColor="textSecondary">
-                {t('streakBest', { n: streak, best })}
-              </ThemedText>
-            </View>
-          </ThemedView>
+          {/* Three short pages instead of one long scroll. */}
+          <View style={styles.views}>
+            {VIEWS.map(({ id, label }) => (
+              <Chip key={id} label={t(label)} selected={view === id} onPress={() => setView(id)} />
+            ))}
+          </View>
 
-          {/* This month or this year */}
-          <ThemedText type="smallBold" themeColor="textSecondary" style={styles.sectionLabel}>
-            {t('overview')}
-          </ThemedText>
-          <PeriodReview key={period ?? 'now'} history={history} goal={goal} initial={period} titleOf={titleOf} />
-
-          {/* This week */}
-          <ThemedText type="smallBold" themeColor="textSecondary" style={styles.sectionLabel}>
-            {t('last7')}
-          </ThemedText>
-          <ThemedView type="backgroundElement" style={styles.card}>
-            <View style={styles.chart}>
-              {goal !== null && goal <= chartMax ? (
-                <View
-                  pointerEvents="none"
-                  style={[
-                    styles.goalLine,
-                    { bottom: (goal / chartMax) * CHART_HEIGHT, borderColor: theme.accent },
-                  ]}
-                />
-              ) : null}
-              {week.map(({ key, total }) => {
-                const met = goal !== null && total >= goal;
-                return (
-                  <Pressable
-                    key={key}
-                    onPress={() => setDay(key)}
-                    accessibilityRole="button"
-                    accessibilityLabel={`${formatDay(key, locale)}: ${formatNumber(total)}`}
-                    style={styles.barSlot}>
-                    <View
-                      style={[
-                        styles.bar,
-                        {
-                          height: Math.max(4, (total / chartMax) * CHART_HEIGHT),
-                          backgroundColor: met
-                            ? theme.accent
-                            : total > 0
-                              ? theme.textSecondary
-                              : theme.backgroundSelected,
-                          opacity: met || total === 0 ? 1 : 0.55,
-                        },
-                        key === day && { borderWidth: 2, borderColor: theme.text },
-                      ]}
-                    />
-                  </Pressable>
-                );
-              })}
-            </View>
-            <View style={styles.barLabels}>
-              {week.map(({ key }) => {
-                const [y, m, d] = key.split('-').map(Number);
-                return (
-                  <ThemedText
-                    key={key}
-                    type={key === todayKey ? 'smallBold' : 'small'}
-                    themeColor={key === todayKey ? undefined : 'textSecondary'}
-                    style={styles.barLabel}>
-                    {new Date(y, m - 1, d).toLocaleDateString(locale, { weekday: 'narrow' })}
-                  </ThemedText>
-                );
-              })}
-            </View>
-            <ThemedText type="small" themeColor="textSecondary">
-              {t('weekSummary', { count: weekTotal })}
-              {goal !== null ? ` · ${t('goalDays', { n: goalDays })}` : ''}
-            </ThemedText>
-          </ThemedView>
-
-          {/* Calendar and the chosen day */}
-          <ThemedText type="smallBold" themeColor="textSecondary" style={styles.sectionLabel}>
-            {t('calendar')}
-          </ThemedText>
-          <MonthCalendar history={history} goal={goal} selected={day} onSelect={setDay} />
-
-          <ThemedView
-            type="backgroundElement"
-            style={[styles.card, { borderWidth: 1, borderColor: theme.accent }]}>
-            <View style={styles.row}>
-              <ThemedText type="smallBold" style={styles.rowLabel}>
-                {dayLabel}
-              </ThemedText>
-              <ThemedText style={styles.rowValue}>{formatNumber(dayTotal(history[day]))}</ThemedText>
-            </View>
-            {dayEntries.length === 0 ? (
-              <ThemedText type="small" themeColor="textSecondary">
-                {day === todayKey ? t('noneToday') : t('noneDay')}
-              </ThemedText>
-            ) : (
-              dayEntries.map(([id, taps]) => (
-                <View key={id} style={styles.row}>
-                  <ThemedText type="small" style={styles.rowLabel} numberOfLines={1}>
-                    {titleOf(id)}
-                  </ThemedText>
-                  <ThemedText type="small" style={styles.rowValue}>
-                    {formatNumber(taps)}
-                  </ThemedText>
-                </View>
-              ))
-            )}
-            {lastAdd && lastAdd.day === day ? (
-              <View style={styles.row}>
-                <ThemedText type="small" themeColor="textSecondary" style={styles.rowLabel}>
-                  {t('addedLine', { count: lastAdd.amount, title: titleOf(lastAdd.id) })}
-                </ThemedText>
-                <Pressable onPress={undoAdd} accessibilityRole="button" hitSlop={Spacing.two}>
-                  <ThemedText type="smallBold" style={{ color: theme.accent }}>
-                    {t('undo')}
-                  </ThemedText>
-                </Pressable>
-              </View>
-            ) : null}
-            <Button label={`+ ${t('addForDay')}`} onPress={() => setAdding(true)} />
-          </ThemedView>
-
-          {/* Long-term goals */}
-          <ThemedText type="smallBold" themeColor="textSecondary" style={styles.sectionLabel}>
-            {t('personalGoals')}
-          </ThemedText>
-          <PersonalGoals
-            goals={goals}
-            history={history}
-            choices={choices}
-            titleOf={titleOf}
-            onSave={(input) => saveGoal(input)}
-            onRemove={removeGoal}
-          />
-
-          {/* Most recited */}
-          {ranked.length > 0 ? (
+          {view === 'today' ? (
             <>
-              <ThemedText type="smallBold" themeColor="textSecondary" style={styles.sectionLabel}>
-                {t('mostRecited')}
-              </ThemedText>
-              <ThemedView type="backgroundElement" style={styles.card}>
-                {ranked.slice(0, TOP_COUNT).map(([id, taps]) => (
-                  <View key={id} style={styles.topItem}>
-                    <View style={styles.row}>
-                      <ThemedText type="small" style={styles.rowLabel} numberOfLines={1}>
-                        {titleOf(id)}
-                      </ThemedText>
-                      <ThemedText type="small" style={styles.rowValue}>
-                        {formatNumber(taps)}
-                      </ThemedText>
-                    </View>
-                    <View style={[styles.track, { backgroundColor: theme.backgroundSelected }]}>
+            {/* Today at a glance */}
+            <ThemedView type="backgroundElement" style={[styles.card, styles.today]}>
+              {goal !== null ? (
+                <ProgressRing size={92} strokeWidth={9} progress={todayTotal / goal}>
+                  <ThemedText style={styles.ringText}>
+                    {formatNumber(Math.min(100, Math.floor((todayTotal / goal) * 100)))}%
+                  </ThemedText>
+                </ProgressRing>
+              ) : null}
+              <View style={styles.todayText}>
+                <View style={styles.todayLine}>
+                  <ThemedText style={styles.big}>{formatNumber(todayTotal)}</ThemedText>
+                  <ThemedText themeColor="textSecondary">{t('today')}</ThemedText>
+                </View>
+                {goal !== null ? (
+                  <ThemedText
+                    type="smallBold"
+                    style={todayTotal >= goal ? { color: theme.accent } : undefined}
+                    themeColor={todayTotal >= goal ? undefined : 'textSecondary'}>
+                    {todayTotal >= goal
+                      ? t('dailyGoalReached')
+                      : t('countOfGoal', { count: todayTotal, goal })}
+                  </ThemedText>
+                ) : null}
+                <ThemedText type="small" themeColor="textSecondary">
+                  {t('streakBest', { n: streak, best })}
+                </ThemedText>
+                <ThemedText type="small" themeColor="textSecondary">
+                  ❄︎ {t('freezesSaved', { n: streakFreezes })}
+                </ThemedText>
+                {recentFreeze ? (
+                  <ThemedText type="small" style={{ color: theme.accent }}>
+                    {t('freezeUsed', { day: formatDay(recentFreeze, locale) })}
+                  </ThemedText>
+                ) : null}
+              </View>
+            </ThemedView>
+
+            {/* This week */}
+            <ThemedText type="smallBold" themeColor="textSecondary" style={styles.sectionLabel}>
+              {t('last7')}
+            </ThemedText>
+            <ThemedView type="backgroundElement" style={styles.card}>
+              <View style={styles.chart}>
+                {goal !== null && goal <= chartMax ? (
+                  <View
+                    pointerEvents="none"
+                    style={[
+                      styles.goalLine,
+                      { bottom: (goal / chartMax) * CHART_HEIGHT, borderColor: theme.accent },
+                    ]}
+                  />
+                ) : null}
+                {week.map(({ key, total }) => {
+                  const met = goal !== null && total >= goal;
+                  return (
+                    <Pressable
+                      key={key}
+                      onPress={() => setDay(key)}
+                      accessibilityRole="button"
+                      accessibilityLabel={`${formatDay(key, locale)}: ${formatNumber(total)}`}
+                      style={styles.barSlot}>
                       <View
                         style={[
-                          styles.fill,
-                          { width: `${(taps / ranked[0][1]) * 100}%`, backgroundColor: theme.accent },
+                          styles.bar,
+                          {
+                            height: Math.max(4, (total / chartMax) * CHART_HEIGHT),
+                            backgroundColor: met
+                              ? theme.accent
+                              : total > 0
+                                ? theme.textSecondary
+                                : theme.backgroundSelected,
+                            opacity: met || total === 0 ? 1 : 0.55,
+                          },
+                          key === day && { borderWidth: 2, borderColor: theme.text },
                         ]}
                       />
-                    </View>
+                    </Pressable>
+                  );
+                })}
+              </View>
+              <View style={styles.barLabels}>
+                {week.map(({ key }) => {
+                  const [y, m, d] = key.split('-').map(Number);
+                  return (
+                    <ThemedText
+                      key={key}
+                      type={key === todayKey ? 'smallBold' : 'small'}
+                      themeColor={key === todayKey ? undefined : 'textSecondary'}
+                      style={styles.barLabel}>
+                      {new Date(y, m - 1, d).toLocaleDateString(locale, { weekday: 'narrow' })}
+                    </ThemedText>
+                  );
+                })}
+              </View>
+              <ThemedText type="small" themeColor="textSecondary">
+                {t('weekSummary', { count: weekTotal })}
+                {goal !== null ? ` · ${t('goalDays', { n: goalDays })}` : ''}
+              </ThemedText>
+            </ThemedView>
+
+            {/* Calendar and the chosen day */}
+            <ThemedText type="smallBold" themeColor="textSecondary" style={styles.sectionLabel}>
+              {t('calendar')}
+            </ThemedText>
+            <MonthCalendar history={history} goal={goal} selected={day} onSelect={setDay} />
+
+            <ThemedView
+              type="backgroundElement"
+              style={[styles.card, { borderWidth: 1, borderColor: theme.accent }]}>
+              <View style={styles.row}>
+                <ThemedText type="smallBold" style={styles.rowLabel}>
+                  {dayLabel}
+                </ThemedText>
+                <ThemedText style={styles.rowValue}>{formatNumber(dayTotal(history[day]))}</ThemedText>
+              </View>
+              {dayEntries.length === 0 ? (
+                <ThemedText type="small" themeColor="textSecondary">
+                  {day === todayKey ? t('noneToday') : t('noneDay')}
+                </ThemedText>
+              ) : (
+                dayEntries.map(([id, taps]) => (
+                  <View key={id} style={styles.row}>
+                    <ThemedText type="small" style={styles.rowLabel} numberOfLines={1}>
+                      {titleOf(id)}
+                    </ThemedText>
+                    <ThemedText type="small" style={styles.rowValue}>
+                      {formatNumber(taps)}
+                    </ThemedText>
                   </View>
-                ))}
-              </ThemedView>
+                ))
+              )}
+              {lastAdd && lastAdd.day === day ? (
+                <View style={styles.row}>
+                  <ThemedText type="small" themeColor="textSecondary" style={styles.rowLabel}>
+                    {t('addedLine', { count: lastAdd.amount, title: titleOf(lastAdd.id) })}
+                  </ThemedText>
+                  <Pressable onPress={undoAdd} accessibilityRole="button" hitSlop={Spacing.two}>
+                    <ThemedText type="smallBold" style={{ color: theme.accent }}>
+                      {t('undo')}
+                    </ThemedText>
+                  </Pressable>
+                </View>
+              ) : null}
+              <Button label={`+ ${t('addForDay')}`} onPress={() => setAdding(true)} />
+            </ThemedView>
+
             </>
           ) : null}
 
-          {/* Milestones */}
-          <ThemedText type="smallBold" themeColor="textSecondary" style={styles.sectionLabel}>
-            {t('badges')}
-          </ThemedText>
-          <Badges bestStreak={best} streak={streak} allTime={allTime} />
+          {view === 'overview' ? (
+            <>
+            {/* This month or this year */}
+            <ThemedText type="smallBold" themeColor="textSecondary" style={styles.sectionLabel}>
+              {t('overview')}
+            </ThemedText>
+            <PeriodReview key={period ?? 'now'} history={history} goal={goal} initial={period} titleOf={titleOf} />
 
-          {/* All time */}
-          <View style={styles.stats}>
-            <Stat label={t('allTime')} value={formatNumber(allTime)} />
-            <Stat label={t('bestStreak')} value={formatNumber(best)} />
-          </View>
-          <Button label={t('share')} onPress={() => setSharing(true)} />
+            {/* Most recited */}
+            {ranked.length > 0 ? (
+              <>
+                <ThemedText type="smallBold" themeColor="textSecondary" style={styles.sectionLabel}>
+                  {t('mostRecited')}
+                </ThemedText>
+                <ThemedView type="backgroundElement" style={styles.card}>
+                  {ranked.slice(0, TOP_COUNT).map(([id, taps]) => (
+                    <View key={id} style={styles.topItem}>
+                      <View style={styles.row}>
+                        <ThemedText type="small" style={styles.rowLabel} numberOfLines={1}>
+                          {titleOf(id)}
+                        </ThemedText>
+                        <ThemedText type="small" style={styles.rowValue}>
+                          {formatNumber(taps)}
+                        </ThemedText>
+                      </View>
+                      <View style={[styles.track, { backgroundColor: theme.backgroundSelected }]}>
+                        <View
+                          style={[
+                            styles.fill,
+                            { width: `${(taps / ranked[0][1]) * 100}%`, backgroundColor: theme.accent },
+                          ]}
+                        />
+                      </View>
+                    </View>
+                  ))}
+                </ThemedView>
+              </>
+            ) : null}
+
+            {/* All time */}
+            <View style={styles.stats}>
+              <Stat label={t('allTime')} value={formatNumber(allTime)} />
+              <Stat label={t('bestStreak')} value={formatNumber(best)} />
+            </View>
+            <Button label={t('share')} onPress={() => setSharing(true)} />
+            </>
+          ) : null}
+
+          {view === 'goals' ? (
+            <>
+            {/* Long-term goals */}
+            <ThemedText type="smallBold" themeColor="textSecondary" style={styles.sectionLabel}>
+              {t('personalGoals')}
+            </ThemedText>
+            <PersonalGoals
+              goals={goals}
+              history={history}
+              choices={choices}
+              titleOf={titleOf}
+              onSave={(input) => saveGoal(input)}
+              onRemove={removeGoal}
+            />
+
+            {/* Milestones */}
+            <ThemedText type="smallBold" themeColor="textSecondary" style={styles.sectionLabel}>
+              {t('badges')}
+            </ThemedText>
+            <Badges bestStreak={best} streak={streak} allTime={allTime} />
+
+            </>
+          ) : null}
         </ScrollView>
         <AdBanner />
       </SafeAreaView>
@@ -389,6 +439,11 @@ const styles = StyleSheet.create({
     fontSize: 34,
     lineHeight: 42,
     fontVariant: ['tabular-nums'],
+  },
+  views: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.two,
   },
   sectionLabel: {
     textTransform: 'uppercase',

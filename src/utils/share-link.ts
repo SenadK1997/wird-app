@@ -1,53 +1,46 @@
 import { SHARE_PAGE_URL } from '@/constants/app-info';
 import { MAX_FLOW_STEPS, MAX_TARGET, type Dhikr, type Flow } from '@/data/dhikr';
+import { idFromShareCode, shareCode } from '@/data/share-codes';
 
 /**
  * Share links for custom dhikr and flows. Everything is packed into the link itself, so no
  * server is needed: `https://…/add.html#<code>` for people (the page opens the app, or the store
  * if it is not installed) and `wird://add?d=<code>` for the app.
  *
- * The code is base64url of a small JSON object:
- *   dhikr: { v: 1, d: { t: title, tr?: transliteration, ar?: arabic, n: target } }
- *   flow:  { v: 1, f: { t: title, s: [{ b: builtInId, n, t?: name } | { c: dhikr, n }] } }
- * A built-in step's name is only for the web page; the app shows its own text for it.
+ * Version 2 (from 1.0.5) keeps links short: the code is "2" followed by base64url of a compact
+ * text, packed so each Arabic letter takes one byte instead of two (see `pack`). The text is
+ * fields joined by U+001F:
+ *   dhikr: d, title, transliteration, arabic, target
+ *   flow:  f, title, then per step either "b<code>:<target>" for a built-in dhikr (its two-
+ *          character code from SHARE_CODES) or "c" followed by five more fields: title,
+ *          transliteration, arabic, the dhikr's own target, and the step's target.
+ * Version 1 (1.0.4) was base64url of JSON and is still read, so old links keep working.
  */
 
 export type SharedDhikr = Pick<Dhikr, 'title' | 'transliteration' | 'arabic' | 'target'>;
-export type SharedFlowStep =
-  | { builtInId: string; target: number; name?: string }
-  | { dhikr: SharedDhikr; target: number };
+export type SharedFlowStep = { builtInId: string; target: number } | { dhikr: SharedDhikr; target: number };
 export type Shared =
   | { kind: 'dhikr'; dhikr: SharedDhikr }
   | { kind: 'flow'; title: string; steps: SharedFlowStep[] };
 
-const VERSION = 1;
 /** Longest text accepted from a link, so a broken or hostile link cannot flood the app. */
 const MAX_TEXT = 2000;
-
-type WireDhikr = { t: string; tr?: string; ar?: string; n: number };
-type WireStep = { b: string; n: number; t?: string } | { c: WireDhikr; n: number };
-
-const toWire = (d: SharedDhikr): WireDhikr => ({
-  t: d.title,
-  ...(d.transliteration ? { tr: d.transliteration } : {}),
-  ...(d.arabic ? { ar: d.arabic } : {}),
-  n: d.target,
-});
+const SEP = '\u001f';
 
 /** Builds the payload for a custom dhikr. */
 export function sharedFromDhikr(dhikr: Dhikr): Shared {
   return { kind: 'dhikr', dhikr: pick(dhikr) };
 }
 
-/** Builds the payload for a flow. Built-in steps travel by id, custom ones in full. */
+/** Builds the payload for a flow. Built-in steps travel as a short code, custom ones in full. */
 export function sharedFromFlow(flow: Flow, title: string, find: (id: string) => Dhikr | undefined): Shared {
   const steps: SharedFlowStep[] = [];
   for (const step of flow.steps) {
     const dhikr = find(step.dhikrId);
     if (!dhikr) continue;
     steps.push(
-      dhikr.builtIn
-        ? { builtInId: dhikr.id, target: step.target, name: dhikr.title }
+      dhikr.builtIn && shareCode(dhikr.id)
+        ? { builtInId: dhikr.id, target: step.target }
         : { dhikr: pick(dhikr), target: step.target }
     );
   }
@@ -61,22 +54,24 @@ const pick = (d: Dhikr): SharedDhikr => ({
   target: d.target,
 });
 
+// Separators are not allowed inside a field.
+const clean = (text: string | undefined) => (text ?? '').split(SEP).join(' ');
+const dhikrFields = (d: SharedDhikr) => [clean(d.title), clean(d.transliteration), clean(d.arabic), String(d.target)];
+
 export function encodeShared(shared: Shared): string {
-  const wire =
+  const fields =
     shared.kind === 'dhikr'
-      ? { v: VERSION, d: toWire(shared.dhikr) }
-      : {
-          v: VERSION,
-          f: {
-            t: shared.title,
-            s: shared.steps.map((s): WireStep =>
-              'builtInId' in s
-                ? { b: s.builtInId, n: s.target, ...(s.name ? { t: s.name } : {}) }
-                : { c: toWire(s.dhikr), n: s.target }
-            ),
-          },
-        };
-  return toBase64Url(utf8Encode(JSON.stringify(wire)));
+      ? ['d', ...dhikrFields(shared.dhikr)]
+      : [
+          'f',
+          clean(shared.title),
+          ...shared.steps.flatMap((s) =>
+            'builtInId' in s
+              ? [`b${shareCode(s.builtInId)}:${s.target}`]
+              : ['c', ...dhikrFields(s.dhikr), String(s.target)]
+          ),
+        ];
+  return `2${toBase64Url(pack(fields.join(SEP)))}`;
 }
 
 /** The link to send to people. */
@@ -87,33 +82,71 @@ export function shareUrl(shared: Shared) {
 /** Reads a code back. Returns `null` for anything that is not a valid Wird share. */
 export function decodeShared(code: string): Shared | null {
   try {
-    const raw: unknown = JSON.parse(utf8Decode(fromBase64Url(code)));
-    if (!isObject(raw) || raw.v !== VERSION) return null;
-    if (isObject(raw.d)) {
-      const dhikr = readDhikr(raw.d);
-      return dhikr ? { kind: 'dhikr', dhikr } : null;
-    }
-    if (isObject(raw.f) && Array.isArray(raw.f.s)) {
-      const title = text(raw.f.t);
-      if (!title) return null;
-      const steps: SharedFlowStep[] = [];
-      for (const s of raw.f.s.slice(0, MAX_FLOW_STEPS)) {
-        if (!isObject(s)) return null;
-        const target = count(s.n);
-        if (target === null) return null;
-        if (typeof s.b === 'string' && s.b.length < 100) steps.push({ builtInId: s.b, target });
-        else if (isObject(s.c)) {
-          const dhikr = readDhikr(s.c);
-          if (!dhikr) return null;
-          steps.push({ dhikr, target });
-        } else return null;
-      }
-      return steps.length > 0 ? { kind: 'flow', title, steps } : null;
-    }
-    return null;
+    if (code.startsWith('2')) return decodeV2(unpack(fromBase64Url(code.slice(1))));
+    return decodeV1(utf8Decode(fromBase64Url(code)));
   } catch {
     return null;
   }
+}
+
+function decodeV2(text: string): Shared | null {
+  const f = text.split(SEP);
+  const dhikrAt = (i: number) =>
+    readDhikr({ t: f[i], tr: f[i + 1], ar: f[i + 2], n: whole(f[i + 3]) });
+  if (f[0] === 'd') {
+    const dhikr = dhikrAt(1);
+    return dhikr ? { kind: 'dhikr', dhikr } : null;
+  }
+  if (f[0] !== 'f') return null;
+  const title = text2(f[1]);
+  if (!title) return null;
+  const steps: SharedFlowStep[] = [];
+  for (let i = 2; i < f.length && steps.length < MAX_FLOW_STEPS; ) {
+    if (f[i].startsWith('b')) {
+      const [code, n] = f[i].slice(1).split(':');
+      const target = count(whole(n));
+      if (target === null) return null;
+      // A dhikr added in a newer version is unknown here: that step is left out, not the link.
+      const id = idFromShareCode(code);
+      if (id) steps.push({ builtInId: id, target });
+      i += 1;
+    } else if (f[i] === 'c') {
+      const dhikr = dhikrAt(i + 1);
+      const target = count(whole(f[i + 5]));
+      if (!dhikr || target === null) return null;
+      steps.push({ dhikr, target });
+      i += 6;
+    } else return null;
+  }
+  return steps.length > 0 ? { kind: 'flow', title, steps } : null;
+}
+
+/** Links from 1.0.4: JSON with "v": 1. */
+function decodeV1(json: string): Shared | null {
+  const raw: unknown = JSON.parse(json);
+  if (!isObject(raw) || raw.v !== 1) return null;
+  if (isObject(raw.d)) {
+    const dhikr = readDhikr(raw.d);
+    return dhikr ? { kind: 'dhikr', dhikr } : null;
+  }
+  if (isObject(raw.f) && Array.isArray(raw.f.s)) {
+    const title = text2(raw.f.t);
+    if (!title) return null;
+    const steps: SharedFlowStep[] = [];
+    for (const s of raw.f.s.slice(0, MAX_FLOW_STEPS)) {
+      if (!isObject(s)) return null;
+      const target = count(s.n);
+      if (target === null) return null;
+      if (typeof s.b === 'string' && s.b.length < 100) steps.push({ builtInId: s.b, target });
+      else if (isObject(s.c)) {
+        const dhikr = readDhikr(s.c);
+        if (!dhikr) return null;
+        steps.push({ dhikr, target });
+      } else return null;
+    }
+    return steps.length > 0 ? { kind: 'flow', title, steps } : null;
+  }
+  return null;
 }
 
 /**
@@ -128,13 +161,13 @@ export function shareCodeFromUrl(url: string): string | null {
 }
 
 function readDhikr(raw: Record<string, unknown>): SharedDhikr | null {
-  const title = text(raw.t);
+  const title = text2(raw.t);
   const target = count(raw.n);
   if (!title || target === null) return null;
   return {
     title,
-    transliteration: text(raw.tr) || undefined,
-    arabic: text(raw.ar) || undefined,
+    transliteration: text2(raw.tr) || undefined,
+    arabic: text2(raw.ar) || undefined,
     target,
   };
 }
@@ -142,13 +175,51 @@ function readDhikr(raw: Record<string, unknown>): SharedDhikr | null {
 const isObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
 
-const text = (value: unknown) => (typeof value === 'string' ? value.trim().slice(0, MAX_TEXT) : '');
+const text2 = (value: unknown) => (typeof value === 'string' ? value.trim().slice(0, MAX_TEXT) : '');
+
+/** A field that must be a number: digits only, so an empty field is not read as 0. */
+const whole = (field: string | undefined) => (field !== undefined && /^[0-9]+$/.test(field) ? Number(field) : NaN);
 
 /** A target as the app allows it: a whole number from 0 (endless) to MAX_TARGET. */
 function count(value: unknown) {
   return typeof value === 'number' && Number.isInteger(value) && value >= 0 && value <= MAX_TARGET
     ? value
     : null;
+}
+
+// Packing: ASCII stays one byte (0x00–0x7F), the Arabic block U+0600–U+067E becomes one byte
+// (0x80–0xFE), and anything else (č, ž, ۝, emoji…) is 0xFF followed by its UTF-8 bytes. Arabic
+// text with its vowel marks is almost all in that block, so it takes half the space of UTF-8.
+// docs/add.html decodes the same way.
+
+const ARABIC = 0x0600;
+
+function pack(text: string): number[] {
+  const bytes: number[] = [];
+  for (const char of text) {
+    const cp = char.codePointAt(0)!;
+    if (cp < 0x80) bytes.push(cp);
+    else if (cp >= ARABIC && cp <= ARABIC + 0x7e) bytes.push(0x80 + (cp - ARABIC));
+    else bytes.push(0xff, ...utf8Encode(char));
+  }
+  return bytes;
+}
+
+function unpack(bytes: number[]): string {
+  let out = '';
+  for (let i = 0; i < bytes.length; ) {
+    const b = bytes[i++];
+    if (b < 0x80) out += String.fromCharCode(b);
+    else if (b < 0xff) out += String.fromCharCode(ARABIC + (b - 0x80));
+    else {
+      // One UTF-8 character follows; its first byte says how long it is.
+      const lead = bytes[i];
+      const size = lead >= 0xf0 ? 4 : lead >= 0xe0 ? 3 : 2;
+      out += utf8Decode(bytes.slice(i, i + size));
+      i += size;
+    }
+  }
+  return out;
 }
 
 // Plain-JS UTF-8 and base64url, so the same code runs on every phone and in the browser.

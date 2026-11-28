@@ -17,6 +17,7 @@ import AppTabs from '@/components/app-tabs';
 import { ConfirmProvider } from '@/components/confirm-dialog';
 import { ImportShareDialog } from '@/components/import-share-dialog';
 import { LaunchScreen } from '@/components/launch-screen';
+import { StreakKeeper } from '@/components/streak-keeper';
 import { UpdatePrompt } from '@/components/update-prompt';
 import { Welcome } from '@/components/welcome';
 import { NotificationSync } from '@/hooks/use-notifications';
@@ -88,6 +89,8 @@ function ThemedApp() {
       <ImportShareDialog active={launched} />
       {/* Tells people on an older version that an update is in the store. */}
       <UpdatePrompt active={launched} />
+      {/* Uses and earns streak freezes. */}
+      <StreakKeeper active={launched} />
       {/* The welcome screen waits for the launch sequence, so the two are never on top of each other. */}
       <Welcome ready={launched} />
       {launched ? null : <LaunchScreen onDone={() => setLaunched(true)} />}

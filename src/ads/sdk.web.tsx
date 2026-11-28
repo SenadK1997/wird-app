@@ -25,3 +25,8 @@ export async function privacyOptionsRequired() {
 }
 
 export async function showPrivacyOptions() {}
+
+/** The web build has no ads; the theme gallery unlocks directly there (it is only for previews). */
+export async function showRewardedAd(): Promise<'earned' | 'closed' | 'unavailable'> {
+  return 'earned';
+}

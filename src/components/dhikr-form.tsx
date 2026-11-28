@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Modal, Platform, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { Chip } from '@/components/chip';
 import { FormHeader } from '@/components/form-header';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -40,7 +41,9 @@ function FormBody({ editing, onSubmit, onClose }: Omit<DhikrFormProps, 'visible'
   const [title, setTitle] = useState(editing?.title ?? '');
   const [text, setText] = useState(editing?.transliteration ?? '');
   const [arabic, setArabic] = useState(editing?.arabic ?? '');
-  const [target, setTarget] = useState(String(editing?.target ?? 33));
+  // 0 is "no target": the dhikr counts on for ever, without rounds, like the free counter.
+  const [endless, setEndless] = useState(editing?.target === 0);
+  const [target, setTarget] = useState(String(editing?.target || 33));
   const [error, setError] = useState<string | null>(null);
 
   const inputStyle = [styles.input, { color: theme.text, backgroundColor: theme.backgroundElement }];
@@ -51,8 +54,8 @@ function FormBody({ editing, onSubmit, onClose }: Omit<DhikrFormProps, 'visible'
       setError(t('errorName'));
       return;
     }
-    const parsedTarget = Number(target);
-    if (!/^\d+$/.test(target.trim()) || parsedTarget < 1 || parsedTarget > MAX_TARGET) {
+    const parsedTarget = endless ? 0 : Number(target);
+    if (!endless && (!/^\d+$/.test(target.trim()) || parsedTarget < 1 || parsedTarget > MAX_TARGET)) {
       setError(t('errorTarget', { max: MAX_TARGET }));
       return;
     }
@@ -117,14 +120,22 @@ function FormBody({ editing, onSubmit, onClose }: Omit<DhikrFormProps, 'visible'
 
           <View style={styles.field}>
             <ThemedText type="smallBold">{t('targetCount')}</ThemedText>
-            <TextInput
-              accessibilityLabel={t('targetCount')}
-              value={target}
-              onChangeText={setTarget}
-              keyboardType="number-pad"
-              style={inputStyle}
-              maxLength={6}
-            />
+            {endless ? null : (
+              <TextInput
+                accessibilityLabel={t('targetCount')}
+                value={target}
+                onChangeText={setTarget}
+                keyboardType="number-pad"
+                style={inputStyle}
+                maxLength={6}
+              />
+            )}
+            <View style={styles.chips}>
+              <Chip label={`∞ ${t('noTarget')}`} selected={endless} onPress={() => setEndless(!endless)} />
+            </View>
+            <ThemedText type="small" themeColor="textSecondary">
+              {t(endless ? 'noTargetHint' : 'targetHint')}
+            </ThemedText>
           </View>
         </ScrollView>
       </SafeAreaView>
@@ -133,6 +144,11 @@ function FormBody({ editing, onSubmit, onClose }: Omit<DhikrFormProps, 'visible'
 }
 
 const styles = StyleSheet.create({
+  chips: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.two,
+  },
   container: {
     flex: 1,
     flexDirection: 'row',

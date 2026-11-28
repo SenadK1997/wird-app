@@ -27,7 +27,9 @@ const useTestAds = __DEV__ || process.env.EXPO_PUBLIC_TEST_ADS === '1';
 
 const unitId = (unit: keyof typeof AD_UNITS) => {
   if (!ads) return '';
-  if (useTestAds) return unit === 'appOpen' ? ads.TestIds.APP_OPEN : ads.TestIds.ADAPTIVE_BANNER;
+  if (useTestAds) {
+    return { appOpen: ads.TestIds.APP_OPEN, banner: ads.TestIds.ADAPTIVE_BANNER, rewarded: ads.TestIds.REWARDED }[unit];
+  }
   return AD_UNITS[unit];
 };
 
@@ -132,4 +134,52 @@ export async function privacyOptionsRequired() {
 export async function showPrivacyOptions() {
   if (!ads) return;
   await ads.AdsConsent.showPrivacyOptionsForm();
+}
+
+/** Longest wait for a rewarded ad to load before giving up. */
+const REWARDED_LOAD_TIMEOUT_MS = 12000;
+/**
+ * Longest an ad may stay open. Ads are far shorter; this only matters if the "closed" event never
+ * arrives (the app was paused or rebuilt mid-ad), so the unlock dialog never hangs.
+ */
+const REWARDED_SHOW_TIMEOUT_MS = 3 * 60 * 1000;
+
+/**
+ * Loads and shows a rewarded ad. `earned` means the user watched it to the end and gets the
+ * reward; `closed` means they left early; `unavailable` means no ad could be shown (offline, no
+ * fill, ads not allowed, or no ad unit set up yet).
+ */
+export function showRewardedAd(): Promise<'earned' | 'closed' | 'unavailable'> {
+  const id = unitId('rewarded');
+  if (!ads || !id) return Promise.resolve('unavailable');
+  const { RewardedAd, RewardedAdEventType, AdEventType } = ads;
+
+  return new Promise((resolve) => {
+    const ad = RewardedAd.createForAdRequest(id);
+    let earned = false;
+    let settled = false;
+    const offs: (() => void)[] = [];
+    const finish = (result: 'earned' | 'closed' | 'unavailable') => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      offs.forEach((off) => off());
+      resolve(result);
+    };
+    let timer = setTimeout(() => finish('unavailable'), REWARDED_LOAD_TIMEOUT_MS);
+
+    offs.push(
+      ad.addAdEventListener(RewardedAdEventType.LOADED, () => {
+        clearTimeout(timer);
+        timer = setTimeout(() => finish(earned ? 'earned' : 'closed'), REWARDED_SHOW_TIMEOUT_MS);
+        ad.show().catch(() => finish('unavailable'));
+      }),
+      ad.addAdEventListener(RewardedAdEventType.EARNED_REWARD, () => {
+        earned = true;
+      }),
+      ad.addAdEventListener(AdEventType.CLOSED, () => finish(earned ? 'earned' : 'closed')),
+      ad.addAdEventListener(AdEventType.ERROR, () => finish(earned ? 'earned' : 'unavailable'))
+    );
+    ad.load();
+  });
 }

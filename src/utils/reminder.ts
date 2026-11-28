@@ -30,7 +30,10 @@ export type ExtraNotification = {
 };
 
 /** What tapping a notification opens. */
-export type NotificationTarget = { dhikrId: string } | { open: 'history'; period: string };
+export type NotificationTarget =
+  | { dhikrId: string }
+  | { open: 'history'; period: string }
+  | { open: 'counter' };
 
 export type NotificationConfig = {
   reminders: Reminder[];
@@ -181,7 +184,7 @@ export function onNotificationTap(handler: (target: NotificationTarget) => void)
     if (typeof data.dhikrId === 'string') handler({ dhikrId: data.dhikrId });
     else if (data.open === 'history' && typeof data.period === 'string') {
       handler({ open: 'history', period: data.period });
-    }
+    } else if (data.open === 'counter') handler({ open: 'counter' });
   };
   handle(Notifications.getLastNotificationResponse());
   return Notifications.addNotificationResponseReceivedListener(handle);

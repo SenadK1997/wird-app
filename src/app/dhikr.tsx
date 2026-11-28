@@ -121,13 +121,16 @@ export default function DhikrScreen() {
 
   // A link that adds the dhikr or flow to someone else's app (see utils/share-link).
   const handleShareDhikr = (dhikr: Dhikr) => {
-    shareApp(`${t('shareDhikrText', { title: dhikr.title })}
+    // Name on its own line, one short invitation, then the link.
+    shareApp(`${dhikr.title}
+${t('shareDhikrText')}
 ${shareUrl(sharedFromDhikr(dhikr))}`);
   };
 
   const handleShareFlow = (flow: Flow) => {
     const title = flowTitle(flow);
-    shareApp(`${t('shareFlowText', { title })}
+    shareApp(`${title}
+${t('shareFlowText')}
 ${shareUrl(sharedFromFlow(flow, title, findDhikr))}`);
   };
 
@@ -496,7 +499,8 @@ function DhikrRow({
               </ThemedText>
             ) : null}
             <ThemedText type="small" themeColor="textSecondary">
-              {formatNumber(dhikr.target)}×{dhikr.source ? ` · ${dhikr.source}` : ''}
+              {dhikr.target === 0 ? '∞' : `${formatNumber(dhikr.target)}×`}
+              {dhikr.source ? ` · ${dhikr.source}` : ''}
             </ThemedText>
           </View>
           {dhikr.arabic && !stacked ? (

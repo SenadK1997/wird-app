@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef } from 'react';
 
 import { REMINDERS } from '@/data/reminders';
 import { useI18n, type Translate } from '@/i18n';
-import { useDhikrStore, type Reminder } from '@/store/dhikr-store';
+import { currentStreak, useDhikrStore, type Reminder } from '@/store/dhikr-store';
 import { formatMonth } from '@/utils/date';
 import {
   onNotificationTap,
@@ -16,7 +16,7 @@ import {
 
 type Overrides = Partial<
   Pick<NotificationConfig, 'reminders' | 'nudgesEnabled' | 'nudgesPerDay' | 'ask'>
-> & { jumaEnabled?: boolean; reviewNotifications?: boolean };
+> & { jumaEnabled?: boolean; reviewNotifications?: boolean; streakReminder?: boolean };
 
 /** The installed app version, e.g. "1.0.3". */
 const APP_VERSION = Constants.expoConfig?.version ?? 'unknown';
@@ -26,6 +26,42 @@ const FRIDAYS_AHEAD = 4;
 const JUMA_HOUR = 10;
 /** The month and year reviews arrive on the evening of the last day. */
 const REVIEW_HOUR = 21;
+/** The streak reminder: late enough to know the day is still empty, early enough to act. */
+const STREAK_HOUR = 21;
+const STREAK_DAYS_AHEAD = 7;
+/** A streak this short is not worth a reminder. */
+const MIN_STREAK = 2;
+
+/**
+ * 21:00 on each of the coming days, for a streak still to keep. Today's only while today has
+ * no dhikr yet (it names the streak); later days are general, as nobody knows their count yet.
+ * The schedule is rebuilt whenever the app opens or today's first dhikr is counted, so a reminder
+ * never arrives on a day that already has dhikr counted in the app.
+ */
+export function streakReminders(
+  t: Translate,
+  streak: number,
+  countedToday: boolean,
+  freezes: number,
+  from = new Date()
+): ExtraNotification[] {
+  if (streak < MIN_STREAK) return [];
+  const out: ExtraNotification[] = [];
+  // Only the days on which the streak can still be kept: the next day to count, plus one more for
+  // each saved freeze. After that it is gone, and a reminder about it would only be noise.
+  const first = countedToday ? 1 : 0;
+  const last = Math.min(STREAK_DAYS_AHEAD - 1, first + freezes);
+  for (let d = first; d <= last; d++) {
+    const date = new Date(from.getFullYear(), from.getMonth(), from.getDate() + d, STREAK_HOUR);
+    out.push({
+      date,
+      title: t('streakReminderTitle'),
+      body: d === 0 ? t('streakReminderBody', { n: streak }) : t('streakReminderBodyLater'),
+      data: { open: 'counter' },
+    });
+  }
+  return out;
+}
 
 /** Friday reminders for the coming weeks, at mid-morning. Tapping one opens the salawat counter. */
 export function fridayReminders(t: Translate, from = new Date()): ExtraNotification[] {
@@ -74,8 +110,20 @@ export function reviewReminders(t: Translate, locale: string, from = new Date())
  * Returns `false` when the user has not allowed notifications.
  */
 export function useNotificationSync() {
-  const { reminders, dhikrRemindersEnabled, dhikrRemindersPerDay, jumaEnabled, reviewNotifications } =
-    useDhikrStore();
+  const {
+    reminders,
+    dhikrRemindersEnabled,
+    dhikrRemindersPerDay,
+    jumaEnabled,
+    reviewNotifications,
+    streakReminder,
+    history,
+    frozenDays,
+    streakFreezes,
+    todayTotal,
+  } = useDhikrStore();
+  const streak = currentStreak(history, frozenDays);
+  const countedToday = todayTotal > 0;
   const { t, code, locale } = useI18n();
 
   // Text is keyed only by language; recompute when the language changes, not on every render.
@@ -103,12 +151,26 @@ export function useNotificationSync() {
         extras: [
           ...((over.jumaEnabled ?? jumaEnabled) ? fridayReminders(t) : []),
           ...((over.reviewNotifications ?? reviewNotifications) ? reviewReminders(t, locale) : []),
+          ...((over.streakReminder ?? streakReminder) ? streakReminders(t, streak, countedToday, streakFreezes) : []),
         ],
         // Changes made in Settings come from the user, so the phone may ask them.
         ask: over.ask ?? true,
       }),
     // eslint-disable-next-line react-hooks/exhaustive-deps -- t and locale follow code
-    [reminders, dhikrRemindersEnabled, dhikrRemindersPerDay, jumaEnabled, reviewNotifications, nudges, reminderText, code]
+    [
+      reminders,
+      dhikrRemindersEnabled,
+      dhikrRemindersPerDay,
+      jumaEnabled,
+      reviewNotifications,
+      streakReminder,
+      streak,
+      countedToday,
+      streakFreezes,
+      nudges,
+      reminderText,
+      code,
+    ]
   );
 }
 
@@ -143,6 +205,8 @@ export function NotificationSync({ active }: { active: boolean }) {
     const sub = onNotificationTap((target) => {
       if ('dhikrId' in target) {
         actions.current.select(target.dhikrId);
+        router.navigate('/');
+      } else if (target.open === 'counter') {
         router.navigate('/');
       } else {
         router.navigate({ pathname: '/history', params: { period: target.period } });

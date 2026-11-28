@@ -53,15 +53,77 @@
         var tx = TEXT[lang] || TEXT.en;
         if (lang === 'ar') document.documentElement.dir = 'rtl';
 
+        // Names of the built-in dhikr, by their share code's position (src/data/share-codes.ts).
+        // Append-only, like the list in the app.
+        var TITLES = ["SubhanAllah","Alhamdulillah","Allahu Akbar","La ilaha illallah","Astaghfirullah","Allahumma salli 'ala Muhammad","SubhanAllahi wa bihamdihi","La hawla wa la quwwata illa billah","Ayat al-Kursi","Surah Al-Ikhlas","Surah Al-Falaq","Surah An-Nas","Allahumma bika asbahna","Allahumma bika amsayna","Radina billahi Rabba","Bismillahil-ladhi la yadurru","A'udhu bi kalimatillahit-tammat","Hasbiyallahu la ilaha illa Huwa","Allahumma inni as'aluka 'ilman nafi'an","Allahummak-fini bi halalika 'an haramik","Rabbi inni lima anzalta ilayya min khayrin faqir","Astaghfirullaha wa atubu ilayh","Rabbighfir li wa tub 'alayya","Sayyid al-Istighfar","La ilaha illa Anta, subhanaka","Hasbunallahu wa ni'mal wakil","Ya Hayyu ya Qayyum, bi rahmatika astaghith","Bismika Allahumma amutu wa ahya","Bismika Rabbi wada'tu janbi","Allahumma qini 'adhabak","Alhamdu lillahil-ladhi ahyana","Bismillah, tawakkaltu 'alallah","Bismillahi walajna","Allahummaftah li abwaba rahmatik","Allahumma inni as'aluka min fadlik","Bismillah","Bismillahi awwalahu wa akhirahu","Alhamdu lillahil-ladhi at'amani","Subhanal-ladhi sakhkhara lana hadha","Allahumma inna nas'aluka fi safarina","Ayibuna, ta'ibuna, 'abiduna","Ar-Rahman","Ar-Rahim","Al-Malik","Al-Quddus","As-Salam","Al-Mu'min","Al-Muhaymin","Al-'Aziz","Al-Jabbar","Al-Mutakabbir","Al-Khaliq","Al-Bari'","Al-Musawwir","Al-Ghaffar","Al-Qahhar","Al-Wahhab","Ar-Razzaq","Al-Fattah","Al-'Alim","Al-Qabid","Al-Basit","Al-Khafid","Ar-Rafi'","Al-Mu'izz","Al-Mudhill","As-Sami'","Al-Basir","Al-Hakam","Al-'Adl","Al-Latif","Al-Khabir","Al-Halim","Al-'Azim","Al-Ghafur","Ash-Shakur","Al-'Aliyy","Al-Kabir","Al-Hafiz","Al-Muqit","Al-Hasib","Al-Jalil","Al-Karim","Ar-Raqib","Al-Mujib","Al-Wasi'","Al-Hakim","Al-Wadud","Al-Majid","Al-Ba'ith","Ash-Shahid","Al-Haqq","Al-Wakil","Al-Qawiyy","Al-Matin","Al-Waliyy","Al-Hamid","Al-Muhsi","Al-Mubdi'","Al-Mu'id","Al-Muhyi","Al-Mumit","Al-Hayy","Al-Qayyum","Al-Wajid","Al-Majid","Al-Wahid","Al-Ahad","As-Samad","Al-Qadir","Al-Muqtadir","Al-Muqaddim","Al-Mu'akhkhir","Al-Awwal","Al-Akhir","Az-Zahir","Al-Batin","Al-Wali","Al-Muta'ali","Al-Barr","At-Tawwab","Al-Muntaqim","Al-'Afuww","Ar-Ra'uf","Malik al-Mulk","Dhul-Jalali wal-Ikram","Al-Muqsit","Al-Jami'","Al-Ghaniyy","Al-Mughni","Al-Mani'","Ad-Darr","An-Nafi'","An-Nur","Al-Hadi","Al-Badi'","Al-Baqi","Al-Warith","Ar-Rashid","As-Sabur"];
+
         var code = (location.hash || '').slice(1);
-        var data = null;
-        try {
-          var b64 = code.replace(/-/g, '+').replace(/_/g, '/');
+        var SEP = '';
+
+        function b64bytes(text) {
+          var b64 = text.replace(/-/g, '+').replace(/_/g, '/');
           while (b64.length % 4) b64 += '=';
           var bin = atob(b64);
-          var bytes = new Uint8Array(bin.length);
-          for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-          data = JSON.parse(new TextDecoder().decode(bytes));
+          var bytes = [];
+          for (var i = 0; i < bin.length; i++) bytes.push(bin.charCodeAt(i));
+          return bytes;
+        }
+
+        // Version 2: ASCII as is, 0x80-0xFE = Arabic U+0600-U+067E, 0xFF = one UTF-8 character follows.
+        function unpack(bytes) {
+          var out = '';
+          for (var i = 0; i < bytes.length; ) {
+            var b = bytes[i++];
+            if (b < 0x80) out += String.fromCharCode(b);
+            else if (b < 0xff) out += String.fromCharCode(0x0600 + b - 0x80);
+            else {
+              var lead = bytes[i];
+              var size = lead >= 0xf0 ? 4 : lead >= 0xe0 ? 3 : 2;
+              out += new TextDecoder().decode(new Uint8Array(bytes.slice(i, i + size)));
+              i += size;
+            }
+          }
+          return out;
+        }
+
+        // Both versions become { dhikr: {t, tr, ar, n} } or { flow: { t, steps: [{ name, n }] } }.
+        function read(code) {
+          if (code.charAt(0) === '2') {
+            var f = unpack(b64bytes(code.slice(1))).split(SEP);
+            if (f[0] === 'd') return { dhikr: { t: f[1], tr: f[2], ar: f[3], n: Number(f[4]) } };
+            if (f[0] !== 'f') return null;
+            var steps = [];
+            for (var i = 2; i < f.length; ) {
+              if (f[i].charAt(0) === 'b') {
+                var parts = f[i].slice(1).split(':');
+                steps.push({ name: TITLES[parseInt(parts[0], 36)] || '?', n: Number(parts[1]) });
+                i += 1;
+              } else if (f[i] === 'c') {
+                steps.push({ name: f[i + 1], n: Number(f[i + 5]) });
+                i += 6;
+              } else return null;
+            }
+            return { flow: { t: f[1], steps: steps } };
+          }
+          var json = JSON.parse(new TextDecoder().decode(new Uint8Array(b64bytes(code))));
+          if (json.v !== 1) return null;
+          if (json.d) return { dhikr: json.d };
+          if (json.f) {
+            return {
+              flow: {
+                t: json.f.t,
+                steps: (json.f.s || []).map(function (s) {
+                  return { name: s.c ? s.c.t : s.t || String(s.b).replace(/-/g, ' '), n: s.n };
+                }),
+              },
+            };
+          }
+          return null;
+        }
+
+        var data = null;
+        try {
+          data = read(code);
         } catch (e) {
           data = null;
         }
@@ -79,7 +141,7 @@
           return node;
         }
 
-        if (!data || data.v !== 1 || !(data.d || data.f)) {
+        if (!data) {
           heading.textContent = tx.dhikr;
           var invalid = document.getElementById('invalid');
           invalid.textContent = tx.invalid;
@@ -88,20 +150,19 @@
           return;
         }
 
-        if (data.d) {
+        if (data.dhikr) {
           heading.textContent = tx.dhikr;
-          if (data.d.ar) card.appendChild(el('p', 'arabic', data.d.ar));
-          card.appendChild(el('p', 'name', data.d.t));
-          if (data.d.tr) card.appendChild(el('p', 'muted', data.d.tr));
-          card.appendChild(el('p', 'muted', data.d.n ? data.d.n + '×' : '∞'));
+          if (data.dhikr.ar) card.appendChild(el('p', 'arabic', data.dhikr.ar));
+          card.appendChild(el('p', 'name', data.dhikr.t));
+          if (data.dhikr.tr) card.appendChild(el('p', 'muted', data.dhikr.tr));
+          card.appendChild(el('p', 'muted', data.dhikr.n ? data.dhikr.n + '×' : '∞'));
         } else {
           heading.textContent = tx.flow;
-          card.appendChild(el('p', 'name', data.f.t));
+          card.appendChild(el('p', 'name', data.flow.t));
           var list = el('ul', 'steps');
-          (data.f.s || []).forEach(function (step, index) {
+          data.flow.steps.forEach(function (step, index) {
             var li = el('li');
-            var name = step.c ? step.c.t : step.t || step.b.replace(/-/g, ' ');
-            li.appendChild(el('span', '', index + 1 + '. ' + name));
+            li.appendChild(el('span', '', index + 1 + '. ' + step.name));
             li.appendChild(el('span', 'muted', step.n + '×'));
             list.appendChild(li);
           });

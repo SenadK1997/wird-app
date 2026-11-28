@@ -52,7 +52,7 @@ function FormBody({ editing, onSubmit, onClose }: Omit<FlowFormProps, 'visible'>
 
   const addStep = (dhikrId: string) => {
     const dhikr = findDhikr(dhikrId);
-    setSteps([...steps, { key: nextKey, dhikrId, target: String(dhikr?.target ?? 33) }]);
+    setSteps([...steps, { key: nextKey, dhikrId, target: String(dhikr?.target || 33) }]);
     setNextKey(nextKey + 1);
     setPicking(false);
   };
